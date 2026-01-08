@@ -40,25 +40,25 @@ public partial class AddSalePage : Page
         FocusNavigator.RegisterElements(
             [
                 btnBack,
-                date.text,
+                date.input,
                 cbxCustomerName,
                 tbxTotalSum,
                 tbxFinalAmount,
                 tbxNote,
-                cbxProductCode.combobox,
-                cbxProductName.combobox,
-                cbxProductType.combobox,
-                tbxBundle.inputBox,
-                tbxQuantity.inputBox,
-                tbxQuantity.inputBox,
-                tbxUnitPrice.inputBox,
-                tbxTotalAmount.inputBox,
+                cbxProductCode.combo,
+                cbxProductName.combo,
+                cbxProductType.combo,
+                tbxBundle.input,
+                tbxQuantity.input,
+                tbxQuantity.input,
+                tbxUnitPrice.input,
+                tbxTotalAmount.input,
                 btnAdd,
                 btnSubmit
             ]);
 
-        FocusNavigator.FocusElement(date.text);
-        FocusNavigator.SetFocusRedirect(btnAdd, cbxProductCode.combobox);
+        FocusNavigator.FocusElement(date.input);
+        FocusNavigator.SetFocusRedirect(btnAdd, cbxProductCode.combo);
     }
 
     private void RegisterGlobalShortcuts()

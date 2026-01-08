@@ -17,5 +17,5 @@ public class CurrenciesController
 {
     [HttpPut("all")]
     public async Task<IActionResult> UpdateAll(List<CurrencyCommand> items)
-        => Ok(new Response { Data = await Mediator.Send(new UpdateAllCurrenciesCommand(items)) });
+        => Ok(new Response { Data = await Mediator.Send(new UpdateAllCurrenciesCommand(items), Ct) });
 }

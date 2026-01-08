@@ -19,9 +19,9 @@ public partial class UserCalendar : UserControl
     public UserCalendar()
     {
         InitializeComponent();
-        text.PreviewTextInput += DateTextBox_PreviewTextInput;
-        text.TextChanged += DateTextBox_TextChanged;
-        text.PreviewLostKeyboardFocus += DateTextBox_PreviewLostKeyboardFocus;
+        input.PreviewTextInput += DateTextBox_PreviewTextInput;
+        input.TextChanged += DateTextBox_TextChanged;
+        input.PreviewLostKeyboardFocus += DateTextBox_PreviewLostKeyboardFocus;
         SetDefaultDate();
     }
     public static readonly DependencyProperty HintProperty =
@@ -43,11 +43,11 @@ public partial class UserCalendar : UserControl
     {
         if (d is UserCalendar userCalendar && e.NewValue is DateTime newDate)
         {
-            userCalendar.text.Text = newDate.ToString("dd.MM.yyyy");
+            userCalendar.input.Text = newDate.ToString("dd.MM.yyyy");
         }
         UserCalendar userCal = (d as UserCalendar)!;
-        userCal.text.Focus();
-        userCal.text.SelectAll();
+        userCal.input.Focus();
+        userCal.input.SelectAll();
     }
 
     private void SetDefaultDate()
@@ -75,7 +75,7 @@ public partial class UserCalendar : UserControl
             _ = textBox.Text.Insert(textBox.CaretIndex, e.Text);
         }
 
-        if (text.Text.Length > 10)
+        if (input.Text.Length > 10)
         {
             e.Handled = true; // Блокируем ввод, если длина текста уже соответствует полному формату даты
         }

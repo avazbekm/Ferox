@@ -3,13 +3,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Forex.Wpf.Common.Enums;
 using Forex.Wpf.Common.Services;
+using System.Windows;
 
 public abstract partial class ViewModelBase : ObservableObject
 {
-    // 🔄 Spinner
     [ObservableProperty] private bool isLoading;
 
-    // 🔔 Notifications
     [ObservableProperty] private string errorMessage = string.Empty;
     [ObservableProperty] private string warningMessage = string.Empty;
     [ObservableProperty] private string infoMessage = string.Empty;
@@ -35,9 +34,11 @@ public abstract partial class ViewModelBase : ObservableObject
         if (string.IsNullOrWhiteSpace(message)) return;
 
         NotificationService.Show(message, type);
-
         ErrorMessage = WarningMessage = InfoMessage = SuccessMessage = string.Empty;
     }
+
+    protected static bool Confirm(string message, MessageBoxImage icon = MessageBoxImage.Question)
+        => MessageBox.Show(message, "Tasdiqlash", MessageBoxButton.YesNo, icon) == MessageBoxResult.Yes;
 
     partial void OnIsLoadingChanged(bool value)
     {

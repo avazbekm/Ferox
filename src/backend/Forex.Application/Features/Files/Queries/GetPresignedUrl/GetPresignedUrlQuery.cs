@@ -25,7 +25,7 @@ public class GetPresignedUrlHandler(IFileStorageService fileStorage) : IRequestH
     private static string GetContentType(string fileName)
     {
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
-        
+
         return extension switch
         {
             ".jpg" or ".jpeg" => "image/jpeg",

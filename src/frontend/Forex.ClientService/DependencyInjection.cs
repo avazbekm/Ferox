@@ -14,6 +14,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddClientServices(this IServiceCollection services, IConfiguration config)
     {
+        services.AddHttpClient();
         services.AddSingleton<AuthStore>();
 
         var minioOptions = config.GetSection("Minio").Get<MinioOptions>()!;
@@ -26,6 +27,7 @@ public static class DependencyInjection
 
         services.AddSingleton(minioClient);
         services.AddSingleton<MinioFileStorageService>();
+        services.AddSingleton<IFileStorageClient, FileStorageClient>();
 
         services.AddTransient<AuthHeaderHandler>();
 

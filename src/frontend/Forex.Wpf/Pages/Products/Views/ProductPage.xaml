@@ -16,11 +16,9 @@
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="Auto" />
-			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
 		</Grid.RowDefinitions>
 
-		<!-- Header -->
 		<DockPanel Grid.Row="0" LastChildFill="False">
 			<Label
                 Content="📦 Mahsulotlarni boshqarish"
@@ -40,160 +38,161 @@
                     Foreground="{StaticResource BackButtonForeground}" />
 		</DockPanel>
 
-		<!-- Filters -->
-		<Grid Grid.Row="1" Margin="0,10,0,0">
+		<Grid Grid.Row="1" Margin="0,17,0,5">
 			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="Auto" />
-				<ColumnDefinition Width="10" />
-				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="120" />
+				<ColumnDefinition Width="Auto" MaxWidth="120" />
+				<ColumnDefinition Width="Auto" MinWidth="100" />
 				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
 				<ColumnDefinition Width="Auto" />
 			</Grid.ColumnDefinitions>
 
-			<TextBlock
-                Text="Sana:"
-                FontSize="16"
-                VerticalAlignment="Center" />
-
 			<controls:UserCalendar
                 x:Name="date"
-                Grid.Column="2"
                 Width="120"
                 Height="32"
                 HorizontalAlignment="Left"
                 FontSize="16"
-                SelectedDate="{Binding BeginDate, Mode=TwoWay}" />
-		</Grid>
+                SelectedDate="{Binding CurrentProductEntry.Date, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-		<!-- Input Form -->
-		<Grid Grid.Row="2" Margin="0,17,0,0">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="*" MaxWidth="120" />
-				<ColumnDefinition Width="1.3*" MinWidth="100" />
-				<ColumnDefinition Width="*" />
-				<ColumnDefinition Width="*" />
-				<ColumnDefinition Width="*" />
-				<ColumnDefinition Width="*" />
-				<ColumnDefinition Width="*" />
-				<ColumnDefinition Width="*" />
-				<ColumnDefinition Width="*" />
-				<ColumnDefinition Width="Auto" />
-				<ColumnDefinition Width="Auto" />
-			</Grid.ColumnDefinitions>
-
-			<!--  Mahsulot kodi  -->
-			<controls:FloatingComboBox
-                x:Name="cbxProductCode"
-                Margin="0,0,2,0"
-                DisplayMemberPath="Code"
-                IsEditable="True"
-                IsTextSearchEnabled="True"
-                ItemsSource="{Binding DataContext.AvailableProducts, ElementName=RootPage}"
-                Label="Kodi"
-                SelectedItem="{Binding DataContext.CurrentProductEntry.Product, ElementName=RootPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-			<!--  Mahsulot nomi  -->
-			<controls:FloatingComboBox
-                x:Name="cbxProductName"
+			<controls:FloatingImageComboBox 
                 Grid.Column="1"
                 Margin="2,0"
-                DisplayMemberPath="Name"
-                IsEditable="False"
-                IsTextSearchEnabled="True"
-                ItemsSource="{Binding DataContext.AvailableProducts, ElementName=RootPage}"
-                Label="Nomi"
-                SelectedItem="{Binding DataContext.CurrentProductEntry.Product, ElementName=RootPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                MinWidth="200"
+                Grid.ColumnSpan="2"
+                Label="Mahsulot"
+                x:Name="productCombo"
+                IsEditable="{Binding IsProductComboEditable}"
+                Text="{Binding CurrentProductEntry.Product.Code, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                ItemsSource="{Binding AvailableProducts}"
+                SelectedItem="{Binding CurrentProductEntry.Product, Mode=TwoWay}"
+                IsSearchEnabled="False"
+                ImageMemberPath="PhotoPath"
+                PrimaryTextMemberPath="Code"
+                SecondaryTextMemberPath="Name"
+                ShowImage="True"
+                ImageWidth="24"
+                ImageHeight="24"
+                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
 
-			<!--  tayyorlanish usuli  -->
+			<controls:FloatingInput
+                x:Name="tbxCode"
+                Grid.Column="1"
+                MinWidth="100"
+                Margin="2,0"
+                Label="Kodi"
+                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource BoolToVisibilityConverter}}"
+                Text="{Binding CurrentProductEntry.Product.Code, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+			<controls:FloatingInput
+                x:Name="tbxName"
+                Grid.Column="2"
+                MinWidth="130"
+                Margin="2,0"
+                Label="Nomi"
+                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource BoolToVisibilityConverter}}"
+                Text="{Binding CurrentProductEntry.Product.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
 			<controls:FloatingComboBox
                 x:Name="cbxProductionOrigin"
-                Grid.Column="2"
-                Margin="2,0"
-                IsTextSearchEnabled="True"
-                ItemsSource="{Binding DataContext.ProductionOrigins, ElementName=RootPage}"
-                Label="Tayyorlanish usuli"
-                SelectedItem="{Binding DataContext.CurrentProductEntry.ProductionOriginName, ElementName=RootPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-			<!--  Razmer  -->
-			<controls:FloatingComboBox
-                x:Name="cbxProductType"
                 Grid.Column="3"
                 Margin="2,0"
-                DisplayMemberPath="Type"
-                IsEditable="False"
-                IsTextSearchEnabled="True"
-                ItemsSource="{Binding DataContext.CurrentProductEntry.Product.ProductTypes, ElementName=RootPage}"
-                Label="Razmer"
-                SelectedItem="{Binding DataContext.CurrentProductEntry.Product.SelectedType, ElementName=RootPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                IsEnabled="{Binding IsProductionOriginEnabled}"
+                ItemsSource="{Binding ProductionOrigins}"
+                Label="Tayyorlanish usuli"
+                SelectedItem="{Binding CurrentProductEntry.ProductionOriginName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-			<!--  Qoplar soni  -->
 			<controls:FloatingInput
-                x:Name="tbxBundle"
+                x:Name="tbxRazmer"
                 Grid.Column="4"
                 Margin="2,0"
-                Label="Qop soni"
-                Text="{Binding DataContext.CurrentProductEntry.BundleCount, ElementName=RootPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Label="Razmer"
+                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource BoolToVisibilityConverter}}"
+                Text="{Binding CurrentProductEntry.Product.SelectedType.Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-			<!--  Qopda nechta borligi  -->
+			<controls:FloatingComboBox
+                x:Name="cbxProductType"
+                Grid.Column="4"
+                Margin="2,0"
+                DisplayMemberPath="Type"
+                IsEditable="{Binding IsTypeEditable}"
+                ItemsSource="{Binding CurrentProductEntry.Product.ProductTypes}"
+                Label="Razmer"
+                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+                SelectedItem="{Binding CurrentProductEntry.Product.SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Text="{Binding ProductTypeName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
 			<controls:FloatingInput
-                x:Name="tbxBundleItemCount"
+                x:Name="tbxBundle"
                 Grid.Column="5"
                 Margin="2,0"
-                Label="Donasi"
-                Text="{Binding DataContext.CurrentProductEntry.Product.SelectedType.BundleItemCount, ElementName=RootPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Label="Qop soni"
+                Text="{Binding CurrentProductEntry.BundleCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-			<!--  Jami soni  -->
+			<controls:FloatingInput
+                x:Name="tbxBundleItemCount"
+                Grid.Column="6"
+                Margin="2,0"
+                Label="Donasi"
+                Text="{Binding CurrentProductEntry.Product.SelectedType.BundleItemCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
 			<controls:FloatingInput
                 x:Name="tbxQuantity"
-                Grid.Column="6"
+                Grid.Column="7"
                 Margin="2,0"
                 IsEnabled="False"
                 Label="Jami soni"
-                Text="{Binding DataContext.CurrentProductEntry.Count, ElementName=RootPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Text="{Binding CurrentProductEntry.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-			<!--  Tannarxi  -->
 			<controls:FloatingInput
                 x:Name="tbxCostPrice"
-                Grid.Column="7"
-                Margin="2,0"
-                Label="Tan narxi"
-                Text="{Binding DataContext.CurrentProductEntry.Product.SelectedType.UnitPrice, ElementName=RootPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}" />
-
-			<!--  Rasm  -->
-			<controls:FloatingFileInput
-                x:Name="fileInput"
                 Grid.Column="8"
                 Margin="2,0"
+                Label="Tan narxi"
+                Text="{Binding CurrentProductEntry.Product.SelectedType.UnitPrice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}" />
+
+			<controls:FloatingFileInput
+                x:Name="fileInput"
+                Grid.Column="9"
+                Margin="2,0"
+                MinWidth="100"
                 Label="Rasm"
-                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}}"
-                FileName="{Binding DataContext.SelectedImageFile, ElementName=RootPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource BoolToVisibilityConverter}}"
+                FileName="{Binding CurrentProductEntry.Product.SelectedImageFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 			<Button
                 x:Name="btnAdd"
-                Grid.Column="9"
+                Grid.Column="10"
                 Height="30"
                 Margin="2,0,0,0"
                 md:ButtonAssist.CornerRadius="4"
                 Background="{DynamicResource OtherBackground}"
-                Command="{Binding DataContext.UpdateCommand, ElementName=RootPage}"
+                Command="{Binding SaveCommand}"
                 Content="Saqlash"
                 FontSize="14" />
 
 			<Button
                 x:Name="btnCancel"
-                Grid.Column="10"
+                Grid.Column="11"
                 Height="30"
                 Margin="2,0,0,0"
                 md:ButtonAssist.CornerRadius="4"
                 Background="#FF6B6B"
                 BorderBrush="#D32F2F"
-                Command="{Binding DataContext.CancelCommand, ElementName=RootPage}"
+                Command="{Binding CancelCommand}"
                 Content="Bekor qilish"
                 Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibilityConverter}}"
                 FontSize="14" />
 		</Grid>
 
-		<DataGrid Grid.Row="3" Margin="0 5 0 0"
+		<DataGrid Grid.Row="2"
                 x:Name="dataGrid"
                 AutoGenerateColumns="False"
                 BorderThickness="2"
@@ -209,7 +208,8 @@
                 SelectionUnit="FullRow"
                 AlternatingRowBackground="#F9F9F9"
                 HeadersVisibility="Column"
-                IsReadOnly="True">
+                IsReadOnly="True"
+                ScrollViewer.ScrollChanged="DataGrid_ScrollChanged">
 
 			<DataGrid.Resources>
 				<Style x:Key="RightAlignedCellStyle" TargetType="TextBlock">
@@ -232,9 +232,9 @@
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
 							<TextBlock HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"
-                                           Text="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},
-                                           Converter={StaticResource IndexConverter}}" />
+                                       VerticalAlignment="Center"
+                                       Text="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},
+                                       Converter={StaticResource IndexConverter}}" />
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
 				</DataGridTemplateColumn>
@@ -245,8 +245,7 @@
                         Header="Sana" />
 
 				<DataGridTextColumn
-                        Width="*"
-                        MinWidth="80"
+                        Width="100"
                         Binding="{Binding ProductType.Product.Code, Mode=TwoWay}"
                         Header="Kod" />
 
@@ -277,7 +276,7 @@
 
 				<DataGridTextColumn
                         Width="*"
-                        Binding="{Binding ProductType.BundleItemCount, StringFormat={}{0:N0}}"
+                        Binding="{Binding BundleItemCount, StringFormat={}{0:N0}}"
                         ElementStyle="{StaticResource RightAlignedCellStyle}"
                         Header="Donasi" />
 

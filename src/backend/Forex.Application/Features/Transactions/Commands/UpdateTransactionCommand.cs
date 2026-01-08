@@ -144,7 +144,7 @@ public class UpdateTransactionCommandHandler(
 
         var amountInUZS = transaction.Amount * transaction.ExchangeRate;
         var delta = amountInUZS + transaction.Discount;
-        if(transaction.IsIncome)
+        if (transaction.IsIncome)
             userAccount.Balance -= delta;
         else
             userAccount.Balance += delta;
@@ -158,7 +158,7 @@ public class UpdateTransactionCommandHandler(
 
         if (transaction.PaymentMethod == PaymentMethod.Naqd)
         {
-            if(transaction.IsIncome)
+            if (transaction.IsIncome)
                 shopAccount.Balance -= transaction.Amount;
             else
                 shopAccount.Balance += transaction.Amount;
@@ -222,7 +222,7 @@ public class UpdateTransactionCommandHandler(
 
         if (request.PaymentMethod == PaymentMethod.Naqd)
         {
-            if(transaction.IsIncome)
+            if (transaction.IsIncome)
                 shopAccount.Balance += request.Amount;
             else
                 shopAccount.Balance -= request.Amount;

@@ -28,7 +28,7 @@ public class UpdateForDebtUserAccountCommandHandler(
 
         userAccountEntity.DueDate = DateTime.SpecifyKind(request.DueDate!.Value, DateTimeKind.Utc);
         userAccountEntity.Description = request.Description;
-        // Save qilish
+
         return await context.SaveAsync(cancellationToken);
     }
 

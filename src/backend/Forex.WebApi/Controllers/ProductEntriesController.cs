@@ -10,27 +10,24 @@ using Microsoft.AspNetCore.Mvc;
 public class ProductEntriesController : BaseController
 {
     [HttpPost]
-    public async Task<IActionResult> Entry(CreateProductEntryCommand command)
-        => Ok(new Response { Data = await Mediator.Send(command) });
+    public async Task<IActionResult> Create(CreateProductEntryCommand command)
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpPut]
-    public async Task<IActionResult> Update(UpdateProductEntryCommand query)
-        => Ok(new Response { Data = await Mediator.Send(query) });
+    public async Task<IActionResult> Update(UpdateProductEntryCommand command)
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
-        => Ok(new Response { Data = await Mediator.Send(new DeleteProductEntryCommand(id)) });
+        => Ok(new Response { Data = await Mediator.Send(new DeleteProductEntryCommand(id), Ct) });
 
     [HttpPost("filter")]
     public async Task<IActionResult> GetFiltered(ProductEntryFilterQuery query)
-        => Ok(new Response { Data = await Mediator.Send(query) });
+        => Ok(new Response { Data = await Mediator.Send(query, Ct) });
 
     [HttpPost("image/upload-url")]
-    public async Task<IActionResult> GenerateImageUploadUrl([FromBody] GenerateUploadUrlRequest request)
-    {
-        var result = await Mediator.Send(new GetPresignedUrlQuery(request.FileName, "products"));
-        return Ok(new Response { Data = result });
-    }
+    public async Task<IActionResult> GenerateImageUploadUrl(GenerateUploadUrlRequest request)
+        => Ok(new Response { Data = await Mediator.Send(new GetPresignedUrlQuery(request.FileName, "products"), Ct) });
 }
 
 public sealed record GenerateUploadUrlRequest

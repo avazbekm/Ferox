@@ -5,9 +5,6 @@ using Forex.ClientService.Models.Responses;
 using Forex.Wpf.Pages.Processes.ViewModels;
 using Forex.Wpf.ViewModels;
 using Mapster;
-using System.IO;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 public static class MappingProfile
 {
@@ -27,6 +24,7 @@ public static class MappingProfile
 
         config.NewConfig<ProductEntryViewModel, ProductEntryRequest>();
         config.NewConfig<ProductEntryResponse, ProductEntryViewModel>()
+            .Map(dest => dest.BundleCount, src => src.Count / src.BundleItemCount)
             .Map(dest => dest.Date, src => src.Date.ToLocalTime());
 
         // 🔹 SemiProduct

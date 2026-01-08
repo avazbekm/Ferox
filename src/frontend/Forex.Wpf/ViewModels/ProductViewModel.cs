@@ -18,10 +18,13 @@ public partial class ProductViewModel : ViewModelBase
     [ObservableProperty] private ProductionOrigin productionOrigin;
     [ObservableProperty] private UnitMeasuerViewModel unitMeasure = default!;
     [ObservableProperty] private ImageSource? image;
+    [ObservableProperty] private string imagePath = string.Empty;
+    [ObservableProperty] private string selectedImageFile = string.Empty;
 
     [ObservableProperty] private ObservableCollection<ProductTypeViewModel> productTypes = [];
     [ObservableProperty] private ProductTypeViewModel? selectedType;
     private ProductViewModel? selected;
+
 
     public decimal TotalAmount =>
         ProductTypes?.Sum(pt =>
@@ -41,6 +44,7 @@ public partial class ProductViewModel : ViewModelBase
 
         if (dialog.ShowDialog() == true)
         {
+            SelectedImageFile = dialog.FileName;
             var bmp = new BitmapImage();
             bmp.BeginInit();
             bmp.UriSource = new Uri(dialog.FileName);

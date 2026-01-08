@@ -2,11 +2,6 @@
 
 using Forex.ClientService.Enums;
 
-public sealed record CreateProductEntryRequest
-{
-    public ProductEntryRequest Command { get; set; } = default!;
-}
-
 public sealed record ProductEntryRequest
 {
     public long Id { get; set; }

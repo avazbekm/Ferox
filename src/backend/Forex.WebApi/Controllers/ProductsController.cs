@@ -8,13 +8,13 @@ using Forex.WebApi.Models;
 using Microsoft.AspNetCore.Mvc;
 
 public class ProductsController
-    : ReadOnlyController<ProductDto, GetAllProductsQuery, GetProductByIdQuery>
+    : QueryControllers<ProductDto, GetAllProductsQuery, GetProductByIdQuery>
 {
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
-        => Ok(new Response { Data = await Mediator.Send(new DeleteProductCommand(id)) });
+        => Ok(new Response { Data = await Mediator.Send(new DeleteProductCommand(id), Ct) });
 
     [HttpPost("filter")]
     public async Task<IActionResult> GetFiltered(ProductFilterQuery query)
-        => Ok(new Response { Data = await Mediator.Send(query) });
+        => Ok(new Response { Data = await Mediator.Send(query, Ct) });
 }

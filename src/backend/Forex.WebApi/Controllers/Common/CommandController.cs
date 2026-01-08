@@ -4,7 +4,7 @@ using Forex.WebApi.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-public abstract class WriteOnlyController<TResponse, TCreateCommand, TUpdateCommand, TDeleteCommand>
+public abstract class CommandController<TResponse, TCreateCommand, TUpdateCommand, TDeleteCommand>
     : BaseController
     where TCreateCommand : IRequest<TResponse>
     where TUpdateCommand : IRequest<TResponse>
@@ -12,17 +12,13 @@ public abstract class WriteOnlyController<TResponse, TCreateCommand, TUpdateComm
 {
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] TCreateCommand command)
-        => Ok(new Response { Data = await Mediator.Send(command) });
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] TUpdateCommand command)
-        => Ok(new Response { Data = await Mediator.Send(command) });
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
-        => Ok(new Response
-        {
-            Data = await Mediator.Send(
-            (TDeleteCommand)Activator.CreateInstance(typeof(TDeleteCommand), id)!)
-        });
+        => Ok(new Response { Data = await Mediator.Send((TDeleteCommand)Activator.CreateInstance(typeof(TDeleteCommand), id)!, Ct) });
 }

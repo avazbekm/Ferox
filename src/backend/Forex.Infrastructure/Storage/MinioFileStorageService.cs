@@ -7,7 +7,7 @@ using Minio.DataModel.Args;
 public sealed class MinioFileStorageService : IFileStorageService
 {
     private const int DefaultExpirySeconds = 3600;
-    
+
     private readonly IMinioClient _client;
     private readonly MinioStorageOptions _options;
 
@@ -81,10 +81,10 @@ public sealed class MinioFileStorageService : IFileStorageService
     {
         try
         {
-             var destinationKey = sourceKey.Replace("/temp/", "/");
-            
+            var destinationKey = sourceKey.Replace("/temp/", "/");
+
             if (sourceKey == destinationKey)
-                 return sourceKey;
+                return sourceKey;
 
             await _client.CopyObjectAsync(
                 new CopyObjectArgs()
@@ -96,7 +96,7 @@ public sealed class MinioFileStorageService : IFileStorageService
                 cancellationToken);
 
             await DeleteFileAsync(sourceKey, cancellationToken);
-            
+
             return destinationKey;
         }
         catch
@@ -124,7 +124,7 @@ public sealed class MinioFileStorageService : IFileStorageService
             if (item.LastModified == null) continue;
 
             var lastModified = DateTime.Parse(item.LastModified);
-            
+
             if (lastModified < expiryDate)
             {
                 await DeleteFileAsync(item.Key, cancellationToken);
@@ -181,7 +181,7 @@ public sealed class MinioFileStorageService : IFileStorageService
         var timestamp = DateTime.UtcNow.ToString("yyyyMMdd");
         var uniqueId = Guid.NewGuid().ToString("N")[..12];
         var extension = Path.GetExtension(fileName);
-        
+
         var prefix = _options.Prefix;
         if (!string.IsNullOrWhiteSpace(folder))
         {

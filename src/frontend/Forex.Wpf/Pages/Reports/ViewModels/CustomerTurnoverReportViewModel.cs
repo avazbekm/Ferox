@@ -87,7 +87,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
         BeginBalance = data.BeginBalance;
         LastBalance = data.EndBalance;
 
-        foreach (var op in data.OperationRecords.OrderBy(o => o.Date)) 
+        foreach (var op in data.OperationRecords.OrderBy(o => o.Date))
         {
             decimal debit = 0;
             decimal credit = 0;

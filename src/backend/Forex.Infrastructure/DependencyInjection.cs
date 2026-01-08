@@ -48,8 +48,15 @@ public static class DependencyInjection
     {
         var options = configuration.GetSection("Minio").Get<MinioStorageOptions>()!;
 
+        var endpoint = options.Endpoint;
+        if (Uri.TryCreate(endpoint, UriKind.Absolute, out var uri))
+        {
+            endpoint = uri.Authority;
+        }
+
         var minioClient = new MinioClient()
             .WithEndpoint(options.Endpoint)
+            //.WithEndpoint(endpoint)
             .WithCredentials(options.AccessKey, options.SecretKey);
 
         if (options.UseSsl)

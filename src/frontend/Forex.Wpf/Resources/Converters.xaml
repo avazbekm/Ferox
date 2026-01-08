@@ -18,7 +18,8 @@
     <conv:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
     <conv:BalanceToColorConverter x:Key="BalanceToColorConverter" />
     <conv:IsNotNewRowConverter x:Key="IsNotNewRowConverter" />
-    <conv:ArrayMultiValueConverter x:Key="ArrayMultiValueConverter" />
-    <conv:IndexConverter x:Key="IndexConverter" />
+	<conv:ArrayMultiValueConverter x:Key="ArrayMultiValueConverter" />
+	<conv:PropertyPathConverter x:Key="PropertyPathConverter" />
+	<conv:IndexConverter x:Key="IndexConverter" />
 
 </ResourceDictionary>

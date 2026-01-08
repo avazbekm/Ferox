@@ -5,10 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
 [ApiController]
-//[Authorize]
 public abstract class BaseController : ControllerBase
 {
     private IMediator? mediator;
+
     protected IMediator Mediator
         => mediator ??= HttpContext.RequestServices.GetRequiredService<IMediator>();
+
+    protected CancellationToken Ct
+        => HttpContext.RequestAborted;
 }

@@ -8,16 +8,16 @@ using Refit;
 public interface IApiProductEntries
 {
     [Post("/product-entries")]
-    Task<Response<long?>> Create(CreateProductEntryRequest request);
+    Task<Response<long?>> Create([Body] ProductEntryRequest request);
 
     [Put("/product-entries")]
-    Task<Response<bool>> Update(ProductEntryRequest request);
+    Task<Response<bool>> Update([Body] ProductEntryRequest request);
 
     [Delete("/product-entries/{id}")]
     Task<Response<bool>> Delete(long id);
 
     [Post("/product-entries/filter")]
-    Task<Response<List<ProductEntryResponse>>> Filter(FilteringRequest request);
+    Task<Response<List<ProductEntryResponse>>> Filter([Body] FilteringRequest request);
 
     [Post("/product-entries/image/upload-url")]
     Task<Response<PresignedUrlResponse>> GenerateUploadUrl([Body] GenerateUploadUrlRequest request);

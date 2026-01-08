@@ -7,7 +7,7 @@ using Forex.WebApi.Models;
 using Microsoft.AspNetCore.Mvc;
 
 public class OperationRecordsController
-    : ReadOnlyController<OperationRecordDto, GetAllOperationRecordsQuery, GetOperationRecordByIdQuery>
+    : QueryControllers<OperationRecordDto, GetAllOperationRecordsQuery, GetOperationRecordByIdQuery>
 {
 
     [HttpPost("filter")]

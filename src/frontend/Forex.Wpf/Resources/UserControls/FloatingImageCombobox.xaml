@@ -4,24 +4,27 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:Forex.Wpf.Resources.UserControls"
+    x:Name="Root"
     Height="30"
     d:DesignHeight="32"
     d:DesignWidth="150"
     mc:Ignorable="d">
 
-	<Grid>
+    <UserControl.Resources>
+        <local:PropertyPathConverter x:Key="PropertyPathConverter"/>
+    </UserControl.Resources>
 
-		<!-- Floating Label -->
-		<TextBlock
+    <Grid>
+        <TextBlock x:Name="input"
             HorizontalAlignment="Center"
             FontSize="14"
             Foreground="{DynamicResource PrimaryTextColor}"
             Style="{StaticResource FloatingLabelStyle}"
-            Tag="{Binding ElementName=comboBox}"
-            Text="{Binding Label, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            Tag="{Binding ElementName=combo}"
+            Text="{Binding Label, ElementName=Root}" />
 
-		<!-- Border -->
-		<Border
+        <Border
             Height="30"
             Padding="5,0"
             VerticalAlignment="Bottom"
@@ -29,31 +32,86 @@
             BorderThickness="1"
             CornerRadius="4">
 
-			<ComboBox
-                x:Name="comboBox"
+            <ComboBox
+                x:Name="combo"
                 VerticalAlignment="Center"
                 Background="Transparent"
                 BorderThickness="0"
                 FontSize="14"
-                ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"
-                DisplayMemberPath=""
-                DropDownOpened="ComboBox_DropDownOpened"
+                IsEditable="{Binding IsEditable, ElementName=Root}"
+                IsTextSearchEnabled="{Binding IsSearchEnabled, ElementName=Root}"
+                Text="{Binding Text, ElementName=Root, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                ItemsSource="{Binding ItemsSource, ElementName=Root}"
+                SelectedItem="{Binding SelectedItem, ElementName=Root, Mode=TwoWay}"
+                GotFocus="ComboBox_GotFocus"
                 LostFocus="ComboBox_LostFocus">
 
-				<ComboBox.ItemTemplate>
-					<DataTemplate>
-						<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-							<Image Source="{Binding PhotoPath}"
-                                   Width="20" Height="20" Stretch="Uniform"
-                                   Margin="0,0,8,0"/>
-							<TextBlock Text="{Binding Name}" FontSize="14"/>
-						</StackPanel>
-					</DataTemplate>
-				</ComboBox.ItemTemplate>
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-			</ComboBox>
-		</Border>
+                            <Image x:Name="ItemImage" 
+                                   Grid.Column="0"
+                                   Width="{Binding ImageWidth, ElementName=Root}"
+                                   Height="{Binding ImageHeight, ElementName=Root}"
+                                   Margin="0,0,6,0"
+                                   VerticalAlignment="Center"
+                                   Stretch="Uniform">
+                                <Image.Source>
+                                    <MultiBinding Converter="{StaticResource PropertyPathConverter}">
+                                        <Binding Path="." />
+                                        <Binding Path="ImageMemberPath" ElementName="Root" />
+                                    </MultiBinding>
+                                </Image.Source>
+                            </Image>
 
-	</Grid>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock FontSize="14" FontWeight="Medium" TextTrimming="CharacterEllipsis">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource PropertyPathConverter}">
+                                            <Binding Path="." />
+                                            <Binding Path="PrimaryTextMemberPath" ElementName="Root" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+
+                                <TextBlock x:Name="SecondaryTxt"
+                                           FontSize="11" Foreground="#666" TextTrimming="CharacterEllipsis" Margin="0,-1,0,0">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource PropertyPathConverter}">
+                                            <Binding Path="." />
+                                            <Binding Path="SecondaryTextMemberPath" ElementName="Root" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <DataTemplate.Triggers>
+                            <!-- Hide Image and Secondary Text when in SelectionBox (not in ComboBoxItem) -->
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ComboBoxItem}}" Value="{x:Null}">
+                                <Setter TargetName="ItemImage" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="SecondaryTxt" Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            
+                            <!-- Also respect ShowImage property -->
+                            <DataTrigger Binding="{Binding ShowImage, ElementName=Root}" Value="False">
+                                <Setter TargetName="ItemImage" Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            
+                            <!-- Respect empty SecondaryTextMemberPath -->
+                            <DataTrigger Binding="{Binding SecondaryTextMemberPath, ElementName=Root}" Value="">
+                                <Setter TargetName="SecondaryTxt" Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+
+            </ComboBox>
+        </Border>
+    </Grid>
 </UserControl>

@@ -17,5 +17,5 @@ public class UsersController
 {
     [HttpPost("filter")]
     public async Task<IActionResult> GetFiltered(UserFilterQuery query)
-        => Ok(new Response { Data = await Mediator.Send(query) });
+        => Ok(new Response { Data = await Mediator.Send(query, Ct) });
 }

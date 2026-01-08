@@ -59,7 +59,7 @@ public class DeleteTransactionCommandHandler(
         var amountInUZS = transaction.Amount * transaction.ExchangeRate;
         var delta = amountInUZS + transaction.Discount;
 
-        if(transaction.IsIncome)
+        if (transaction.IsIncome)
             userAccount.Balance -= delta;
         else
             userAccount.Balance += delta;

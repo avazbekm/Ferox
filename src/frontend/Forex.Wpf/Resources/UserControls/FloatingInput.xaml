@@ -16,7 +16,7 @@
             FontSize="14"
             Foreground="{DynamicResource PrimaryTextColor}"
             Style="{StaticResource FloatingLabelStyle}"
-            Tag="{Binding ElementName=inputBox}"
+            Tag="{Binding ElementName=input}"
             Text="{Binding Label, RelativeSource={RelativeSource AncestorType=UserControl}}" />
 
         <!--  Input  -->
@@ -29,7 +29,7 @@
             CornerRadius="4">
 
             <TextBox
-                x:Name="inputBox"
+                x:Name="input"
                 VerticalAlignment="Center"
                 VerticalContentAlignment="Center"
                 Background="Transparent"

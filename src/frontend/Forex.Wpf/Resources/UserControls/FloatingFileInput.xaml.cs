@@ -29,7 +29,7 @@ public partial class FloatingFileInput : UserControl
         var control = (FloatingFileInput)d;
 
         if (e.NewValue is null)
-            control.fileNameBox.Text = string.Empty;
+            control.input.Text = string.Empty;
     }
 
 

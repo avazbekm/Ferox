@@ -3,12 +3,23 @@
 using Forex.Application.Common.Exceptions;
 using Forex.Application.Common.Extensions;
 using Forex.Application.Common.Interfaces;
+using Forex.Application.Features.Products.Products.Commands;
 using Forex.Domain.Entities;
 using Forex.Domain.Entities.Products;
+using Forex.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-public record CreateProductEntryCommand(ProductEntryCommand Command) : IRequest<long>;
+public class CreateProductEntryCommand : IRequest<long>
+{
+    public DateTime Date { get; set; }
+    public int Count { get; set; }
+    public int BundleItemCount { get; set; }
+    public decimal PreparationCostPerUnit { get; set; }
+    public decimal UnitPrice { get; set; }
+    public ProductionOrigin ProductionOrigin { get; set; }
+    public ProductCommand Product { get; set; } = default!;
+}
 
 public class CreateProductEntryCommandHandler(
     IAppDbContext context,
@@ -25,24 +36,22 @@ public class CreateProductEntryCommandHandler(
             var defaultUnitMeasure = await GetOrCreateDefaultUnitMeasureAsync(cancellationToken);
             var defaultCurrency = await GetOrCreateDefaultCurrencyAsync(cancellationToken);
 
-            var item = request.Command;
-            
-            var product = await GetOrCreateProductAsync(item, defaultUnitMeasure, cancellationToken);
+            var product = await GetOrCreateProductAsync(request, defaultUnitMeasure, cancellationToken);
 
-            var productType = await GetOrCreateProductTypeAsync(item, product, defaultCurrency, cancellationToken);
-            
-            productType.BundleItemCount = item.BundleItemCount;
-            productType.UnitPrice = item.UnitPrice;
-            
-            product.ProductionOrigin = item.ProductionOrigin;
+            var productType = await GetOrCreateProductTypeAsync(request, product, defaultCurrency, cancellationToken);
 
-            await TryDeductFromInProcessAsync(productType, item.Count, cancellationToken);
+            productType.BundleItemCount = request.BundleItemCount;
+            productType.UnitPrice = request.UnitPrice;
 
-            var residue = await UpdateProductResidueAsync(productType, item.Count, shop, cancellationToken);
+            product.ProductionOrigin = request.ProductionOrigin;
+
+            await TryDeductFromInProcessAsync(productType, request.Count, cancellationToken);
+
+            var residue = await UpdateProductResidueAsync(productType, request.Count, shop, cancellationToken);
 
             var costPrice = CalculateCostPrice(productType);
 
-            var entry = SaveProductEntry(item, productType, shop, residue, costPrice, defaultCurrency);
+            var entry = SaveProductEntry(request, productType, shop, residue, costPrice, defaultCurrency);
 
             await context.CommitTransactionAsync(cancellationToken);
             return entry.Id;
@@ -113,7 +122,7 @@ public class CreateProductEntryCommandHandler(
         return currency;
     }
 
-    private async Task<Product> GetOrCreateProductAsync(ProductEntryCommand item, UnitMeasure defaultUnitMeasure, CancellationToken ct)
+    private async Task<Product> GetOrCreateProductAsync(CreateProductEntryCommand item, UnitMeasure defaultUnitMeasure, CancellationToken ct)
     {
         Product? product = null;
 
@@ -163,7 +172,7 @@ public class CreateProductEntryCommandHandler(
     }
 
     private async Task<ProductType> GetOrCreateProductTypeAsync(
-        ProductEntryCommand item,
+        CreateProductEntryCommand item,
         Product product,
         Currency defaultCurrency,
         CancellationToken ct)
@@ -298,14 +307,14 @@ public class CreateProductEntryCommandHandler(
     }
 
     private ProductEntry SaveProductEntry(
-        ProductEntryCommand item,
+        CreateProductEntryCommand item,
         ProductType productType,
         Shop shop,
         ProductResidue residue,
         decimal costPrice,
         Currency defaultCurrency)
     {
-        var totalAmount = item.Count * item.UnitPrice;
+        var totalAmount = (decimal)item.Count * item.UnitPrice;
 
         var entry = new ProductEntry
         {
