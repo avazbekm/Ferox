@@ -80,7 +80,7 @@
                 ShowImage="True"
                 ImageWidth="24"
                 ImageHeight="24"
-                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                Visibility="{Binding IsNewProductMode, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
 
 			<controls:FloatingInput
                 x:Name="tbxCode"
@@ -88,7 +88,7 @@
                 MinWidth="100"
                 Margin="2,0"
                 Label="Kodi"
-                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource BoolToVisibilityConverter}}"
+                Visibility="{Binding IsNewProductMode, Converter={StaticResource BoolToVisibilityConverter}}"
                 Text="{Binding CurrentProductEntry.Product.Code, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 			<controls:FloatingInput
@@ -97,7 +97,7 @@
                 MinWidth="130"
                 Margin="2,0"
                 Label="Nomi"
-                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource BoolToVisibilityConverter}}"
+                Visibility="{Binding IsNewProductMode, Converter={StaticResource BoolToVisibilityConverter}}"
                 Text="{Binding CurrentProductEntry.Product.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 			<controls:FloatingComboBox
@@ -107,14 +107,14 @@
                 IsEnabled="{Binding IsProductionOriginEnabled}"
                 ItemsSource="{Binding ProductionOrigins}"
                 Label="Tayyorlanish usuli"
-                SelectedItem="{Binding CurrentProductEntry.ProductionOriginName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                SelectedItem="{Binding CurrentProductEntry.ProductionOrigin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 			<controls:FloatingInput
                 x:Name="tbxRazmer"
                 Grid.Column="4"
                 Margin="2,0"
                 Label="Razmer"
-                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource BoolToVisibilityConverter}}"
+                Visibility="{Binding IsNewProductMode, Converter={StaticResource BoolToVisibilityConverter}}"
                 Text="{Binding CurrentProductEntry.Product.SelectedType.Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 			<controls:FloatingComboBox
@@ -125,7 +125,7 @@
                 IsEditable="{Binding IsTypeEditable}"
                 ItemsSource="{Binding CurrentProductEntry.Product.ProductTypes}"
                 Label="Razmer"
-                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+                Visibility="{Binding IsNewProductMode, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                 SelectedItem="{Binding CurrentProductEntry.Product.SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Text="{Binding ProductTypeName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -141,7 +141,7 @@
                 Grid.Column="6"
                 Margin="2,0"
                 Label="Donasi"
-                Text="{Binding CurrentProductEntry.Product.SelectedType.BundleItemCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Text="{Binding CurrentProductEntry.BundleItemCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 			<controls:FloatingInput
                 x:Name="tbxQuantity"
@@ -156,7 +156,7 @@
                 Grid.Column="8"
                 Margin="2,0"
                 Label="Tan narxi"
-                Text="{Binding CurrentProductEntry.Product.SelectedType.UnitPrice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}" />
+                Text="{Binding CurrentProductEntry.UnitPrice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}" />
 
 			<controls:FloatingFileInput
                 x:Name="fileInput"
@@ -164,7 +164,7 @@
                 Margin="2,0"
                 MinWidth="100"
                 Label="Rasm"
-                Visibility="{Binding CurrentProductEntry.IsNewProduct, Converter={StaticResource BoolToVisibilityConverter}}"
+                Visibility="{Binding IsNewProductMode, Converter={StaticResource BoolToVisibilityConverter}}"
                 FileName="{Binding CurrentProductEntry.Product.SelectedImageFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 			<Button
@@ -288,7 +288,7 @@
 
 				<DataGridTextColumn
                         Width="*"
-                        Binding="{Binding ProductType.UnitPrice, StringFormat={}{0:N0}}"
+                        Binding="{Binding UnitPrice, StringFormat={}{0:N0}}"
                         ElementStyle="{StaticResource RightAlignedCellStyle}"
                         Header="Tannarxi" />
 

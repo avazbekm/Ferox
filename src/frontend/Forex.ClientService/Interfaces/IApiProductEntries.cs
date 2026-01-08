@@ -8,10 +8,10 @@ using Refit;
 public interface IApiProductEntries
 {
     [Post("/product-entries")]
-    Task<Response<long?>> Create([Body] ProductEntryRequest request);
+    Task<Response<long>> Create([Body] ProductEntryRequest request);
 
     [Put("/product-entries")]
-    Task<Response<bool>> Update([Body] ProductEntryRequest request);
+    Task<Response<long>> Update([Body] ProductEntryRequest request);
 
     [Delete("/product-entries/{id}")]
     Task<Response<bool>> Delete(long id);

@@ -9,12 +9,12 @@ public partial class ProductEntryViewModel : ViewModelBase
     public long Id { get; set; }
 
     [ObservableProperty] private ProductViewModel? product;
-    [ObservableProperty] private uint? count;
-    [ObservableProperty] private uint? availableCount;
+    [ObservableProperty] private int? count;
+    [ObservableProperty] private int? availableCount;
     [ObservableProperty] private ProductionOrigin? productionOrigin;
     [ObservableProperty] private string productionOriginName = string.Empty;
-    [ObservableProperty] private uint? bundleItemCount;
-    [ObservableProperty] private uint? bundleCount;
+    [ObservableProperty] private int? bundleItemCount;
+    [ObservableProperty] private int? bundleCount;
     [ObservableProperty] private decimal? unitPrice;
     [ObservableProperty] private ProductTypeViewModel? productType;
     [ObservableProperty] private DateTime date = DateTime.Now;

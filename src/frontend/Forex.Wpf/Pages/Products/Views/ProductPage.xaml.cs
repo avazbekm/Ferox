@@ -78,12 +78,12 @@ public partial class ProductPage : Page
             modifiers: ModifierKeys.Control
         );
 
-        ShortcutAttacher.RegisterShortcut(
-            targetElement: this,
-            key: Key.E,
-            modifiers: ModifierKeys.Control,
-            targetAction: () => _ = vm.Edit()
-        );
+        //ShortcutAttacher.RegisterShortcut(
+        //    targetElement: this,
+        //    key: Key.E,
+        //    modifiers: ModifierKeys.Control,
+        //    targetAction: () => _ = vm.Edit()
+        //);
     }
 
     private void BtnBack_Click(object sender, RoutedEventArgs e)
@@ -96,7 +96,7 @@ public partial class ProductPage : Page
 
     private void DataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        _ = vm.Edit();
+        //_ = vm.Edit();
     }
 
     private void DataGrid_ScrollChanged(object sender, ScrollChangedEventArgs e)
@@ -111,7 +111,7 @@ public partial class ProductPage : Page
 
         if (scrollHeight > 0 && scrollPosition >= scrollHeight * 0.9)
         {
-            _ = vm.LoadMoreProductEntriesCommand.ExecuteAsync(null);
+            //_ = vm.LoadMoreProductEntriesCommand.ExecuteAsync(null);
         }
     }
 }

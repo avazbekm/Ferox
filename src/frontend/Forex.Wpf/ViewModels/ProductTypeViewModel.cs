@@ -10,7 +10,7 @@ public partial class ProductTypeViewModel : ViewModelBase
     public long Id { get; set; }
     public long ProductId { get; set; }
     [ObservableProperty] private string type = string.Empty;
-    [ObservableProperty] private uint? bundleItemCount;
+    [ObservableProperty] private int? bundleItemCount;
     [ObservableProperty] private decimal? unitPrice;
     [ObservableProperty] private ObservableCollection<ProductTypeItemViewModel> productTypeItems = [];
     [ObservableProperty] private ProductResidueResponse productResidue = default!;
