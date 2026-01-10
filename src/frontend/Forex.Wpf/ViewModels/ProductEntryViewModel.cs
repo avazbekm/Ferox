@@ -8,7 +8,7 @@ public partial class ProductEntryViewModel : ViewModelBase
 {
     public long Id { get; set; }
 
-    [ObservableProperty] private ProductViewModel? product;
+    [ObservableProperty] private ProductViewModel product = new();
     [ObservableProperty] private int? count;
     [ObservableProperty] private int? availableCount;
     [ObservableProperty] private ProductionOrigin? productionOrigin;

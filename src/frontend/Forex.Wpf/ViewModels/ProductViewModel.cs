@@ -22,7 +22,7 @@ public partial class ProductViewModel : ViewModelBase
     [ObservableProperty] private string selectedImageFile = string.Empty;
 
     [ObservableProperty] private ObservableCollection<ProductTypeViewModel> productTypes = [];
-    [ObservableProperty] private ProductTypeViewModel? selectedType;
+    [ObservableProperty] private ProductTypeViewModel selectedType = new();
     private ProductViewModel? selected;
 
 

@@ -31,12 +31,6 @@ public partial class ProductPage : Page
         Loaded += ProductPage_Loaded;
     }
 
-    private void OnFocusRequestReceived(string controlName)
-    {
-        if (controlName == "ProductCode")
-            FocusNavigator.FocusElement(productCombo.ComboBoxControl);
-    }
-
     private void ProductPage_Loaded(object sender, RoutedEventArgs e)
     {
         this.ResizeWindow(1300, 700);
@@ -77,13 +71,6 @@ public partial class ProductPage : Page
             key: Key.Enter,
             modifiers: ModifierKeys.Control
         );
-
-        //ShortcutAttacher.RegisterShortcut(
-        //    targetElement: this,
-        //    key: Key.E,
-        //    modifiers: ModifierKeys.Control,
-        //    targetAction: () => _ = vm.Edit()
-        //);
     }
 
     private void BtnBack_Click(object sender, RoutedEventArgs e)
@@ -94,24 +81,24 @@ public partial class ProductPage : Page
             navigation.NavigateTo(new HomePage());
     }
 
-    private void DataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-    {
-        //_ = vm.Edit();
-    }
-
-    private void DataGrid_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    private async void DataGrid_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
         if (e.VerticalChange <= 0) return;
 
-        var scrollViewer = e.OriginalSource as ScrollViewer;
-        if (scrollViewer == null) return;
+        if (e.OriginalSource is not ScrollViewer scrollViewer) return;
 
         double scrollPosition = scrollViewer.VerticalOffset;
         double scrollHeight = scrollViewer.ScrollableHeight;
 
-        if (scrollHeight > 0 && scrollPosition >= scrollHeight * 0.9)
-        {
-            //_ = vm.LoadMoreProductEntriesCommand.ExecuteAsync(null);
-        }
+        if (scrollHeight > 0 && scrollPosition >= scrollHeight * 0.99)
+                await vm.LoadMoreEntriesCommand.ExecuteAsync(null);
+    }
+
+    private void OnFocusRequestReceived(string controlName)
+    {
+        if (controlName == "ProductCode")
+            FocusNavigator.FocusElement(productCombo.ComboBoxControl);
+        else if (controlName == "ProductType")
+            FocusNavigator.FocusElement(cbxProductType.combo);
     }
 }

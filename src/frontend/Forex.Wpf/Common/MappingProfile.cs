@@ -12,15 +12,22 @@ public static class MappingProfile
     {
         // 🔹 Product
         config.NewConfig<ProductResponse, ProductViewModel>();
+        config.NewConfig<ProductViewModel, ProductViewModel>()
+            .PreserveReference(true);
         config.NewConfig<ProductViewModel, ProductRequest>()
             .Map(dest => dest.UnitMeasureId, src => src.UnitMeasure.Id);
 
         // 🔹 ProductTypes
         config.NewConfig<ProductTypeResponse, ProductTypeViewModel>();
+        config.NewConfig<ProductTypeViewModel, ProductTypeViewModel>()
+            .PreserveReference(true);
         config.NewConfig<ProductTypeViewModel, ProductTypeRequest>();
 
         // 🔹 ProductTypeItem
         config.NewConfig<ProductTypeItemViewModel, ProductTypeItemRequest>();
+
+        config.NewConfig<ProductEntryViewModel, ProductEntryViewModel>()
+            .PreserveReference(true);
 
         config.NewConfig<ProductEntryViewModel, ProductEntryRequest>();
         config.NewConfig<ProductEntryResponse, ProductEntryViewModel>()
