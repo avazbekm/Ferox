@@ -42,8 +42,6 @@ public partial class ProductPageViewModel : ViewModelBase
     [ObservableProperty] private string productCode = string.Empty;
     [ObservableProperty] private ProductEntryViewModel currentProductEntry = new();
 
-
-
     public static IEnumerable<ProductionOrigin> ProductionOrigins => Enum.GetValues<ProductionOrigin>();
 
     #region Loading Data
@@ -64,7 +62,7 @@ public partial class ProductPageViewModel : ViewModelBase
 
     private async Task LoadProductEntriesAsync()
     {
-        FilteringRequest request = new() 
+        FilteringRequest request = new()
         {
             Filters = new() { ["producttype"] = ["include:product"] },
             Descending = true,
@@ -76,8 +74,8 @@ public partial class ProductPageViewModel : ViewModelBase
         var response = await client.ProductEntries.Filter(request).Handle(l => IsLoading = l);
         if (response.IsSuccess)
         {
-             ProductEntries.AddRange(mapper.Map<ObservableCollection<ProductEntryViewModel>>(response.Data));
-             if (response.Data.Count < PageSize) hasMoreItems = false;
+            ProductEntries.AddRange(mapper.Map<ObservableCollection<ProductEntryViewModel>>(response.Data));
+            if (response.Data.Count < PageSize) hasMoreItems = false;
         }
         else ErrorMessage = response.Message ?? "Kirim tarixini yuklashda xatolik!";
     }
@@ -124,8 +122,7 @@ public partial class ProductPageViewModel : ViewModelBase
         if (existing is not null) type = existing;
         else if (Confirm($"'{newValue}' yangi razmer sifatida qo'shilsinmi?"))
         {
-            types.Add(new() { Type = newValue });
-            type = null;
+            types.Add(CurrentProductEntry.Product.SelectedType = new() { Type = newValue });
         }
         else { ProductType = string.Empty; WeakReferenceMessenger.Default.Send(new FocusControlMessage("ProductType")); }
     }
@@ -148,7 +145,7 @@ public partial class ProductPageViewModel : ViewModelBase
     private void OnProductPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ProductViewModel.SelectedType) && CurrentProductEntry.Product?.SelectedType is not null)
-             UpdateEntryCalculations();
+            UpdateEntryCalculations();
     }
 
     #endregion
@@ -218,21 +215,40 @@ public partial class ProductPageViewModel : ViewModelBase
     private async Task Edit()
     {
         if (SelectedProductEntry is null) return;
-        
+
         if (IsEditing && !Confirm("Hozirgi tahrirlash jarayoni bekor qilinadi. Davom etasizmi?")) return;
 
         Cancel();
 
         IsEditing = true;
         IsNewProductMode = false;
-        
+
         backupIndex = ProductEntries.IndexOf(SelectedProductEntry);
         backupEntry = mapper.Map<ProductEntryViewModel>(SelectedProductEntry);
 
         CurrentProductEntry = mapper.Map<ProductEntryViewModel>(SelectedProductEntry);
-        CurrentProductEntry.Product = AvailableProducts.FirstOrDefault(p => p.Id == SelectedProductEntry.ProductType!.ProductId);
+
+        var product = AvailableProducts.FirstOrDefault(p => p.Id == SelectedProductEntry.ProductType!.ProductId);
+        if (product is null && SelectedProductEntry.ProductType?.Product is not null)
+            product = AvailableProducts.FirstOrDefault(p => p.Code == SelectedProductEntry.ProductType.Product.Code);
+
+        CurrentProductEntry.Product = product;
         ProductCode = CurrentProductEntry.Product?.Code ?? string.Empty;
-        CurrentProductEntry.Product!.SelectedType = CurrentProductEntry.Product.ProductTypes.FirstOrDefault(pt => pt.Type == SelectedProductEntry.ProductType!.Type);
+
+        if (CurrentProductEntry.Product is not null)
+        {
+            var type = CurrentProductEntry.Product.ProductTypes.FirstOrDefault(pt => pt.Type == SelectedProductEntry.ProductType!.Type);
+            if (type is not null)
+                CurrentProductEntry.Product.SelectedType = type;
+            else
+            {
+                // Fallback: If type not found in list (e.g. newly created), verify/add it or use the one from entry
+                CurrentProductEntry.Product.SelectedType = SelectedProductEntry.ProductType;
+                // Optionally add to list so UI combo works
+                if (!CurrentProductEntry.Product.ProductTypes.Any(pt => pt.Type == SelectedProductEntry.ProductType!.Type))
+                    CurrentProductEntry.Product.ProductTypes.Add(SelectedProductEntry.ProductType!);
+            }
+        }
 
         ProductEntries.Remove(SelectedProductEntry);
         SelectedProductEntry = null;
@@ -248,7 +264,7 @@ public partial class ProductPageViewModel : ViewModelBase
             else
                 ProductEntries.Add(backupEntry);
         }
-        
+
         CleanupAfterSave();
     }
 
@@ -279,9 +295,9 @@ public partial class ProductPageViewModel : ViewModelBase
 
         if (CurrentProductEntry.Product.SelectedType is null) return SetWarning("Razmer/Type tanlanmagan!");
         if (string.IsNullOrWhiteSpace(CurrentProductEntry.Product.SelectedType.Type)) return SetWarning("Razmer nomi kiritilmagan!");
-        
+
         if (!CurrentProductEntry.Count.HasValue || CurrentProductEntry.Count <= 0) return SetWarning("Son (Count) kiritilmagan!");
-        
+
         return true;
     }
 

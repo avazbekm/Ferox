@@ -29,7 +29,12 @@ public static class MappingProfile
         config.NewConfig<ProductEntryViewModel, ProductEntryViewModel>()
             .PreserveReference(true);
 
-        config.NewConfig<ProductEntryViewModel, ProductEntryRequest>();
+        config.NewConfig<ProductEntryViewModel, ProductEntryRequest>()
+            .AfterMapping((src, dest) =>
+            {
+                if (src.Product?.SelectedType is not null)
+                    dest.Product.ProductTypes = [src.Product.SelectedType.Adapt<ProductTypeRequest>()];
+            });
         config.NewConfig<ProductEntryResponse, ProductEntryViewModel>()
             .Map(dest => dest.BundleCount, src => src.Count / src.BundleItemCount)
             .Map(dest => dest.Date, src => src.Date.ToLocalTime());

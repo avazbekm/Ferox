@@ -1,21 +1,14 @@
 namespace Forex.Infrastructure.Storage;
 
 using Forex.Application.Common.Interfaces;
+using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
 
-public sealed class MinioFileStorageService : IFileStorageService
+public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioStorageOptions> options) : IFileStorageService
 {
     private const int DefaultExpirySeconds = 3600;
-
-    private readonly IMinioClient _client;
-    private readonly MinioStorageOptions _options;
-
-    public MinioFileStorageService(IMinioClient client, MinioStorageOptions options)
-    {
-        _client = client;
-        _options = options;
-    }
+    private readonly MinioStorageOptions _options = options.Value;
 
     public async Task<PresignedUploadResult> GeneratePresignedUploadUrlAsync(
         string fileName,
@@ -29,7 +22,7 @@ public sealed class MinioFileStorageService : IFileStorageService
         var objectKey = GenerateObjectKey(fileName, folder);
         var expirySeconds = expiry?.TotalSeconds ?? DefaultExpirySeconds;
 
-        var uploadUrl = await _client.PresignedPutObjectAsync(
+        var uploadUrl = await client.PresignedPutObjectAsync(
             new PresignedPutObjectArgs()
                 .WithBucket(_options.BucketName)
                 .WithObject(objectKey)
@@ -49,7 +42,7 @@ public sealed class MinioFileStorageService : IFileStorageService
     {
         try
         {
-            await _client.StatObjectAsync(
+            await client.StatObjectAsync(
                 new StatObjectArgs()
                     .WithBucket(_options.BucketName)
                     .WithObject(objectKey),
@@ -67,7 +60,7 @@ public sealed class MinioFileStorageService : IFileStorageService
         string objectKey,
         CancellationToken cancellationToken = default)
     {
-        await _client.RemoveObjectAsync(
+        await client.RemoveObjectAsync(
             new RemoveObjectArgs()
                 .WithBucket(_options.BucketName)
                 .WithObject(objectKey),
@@ -86,7 +79,7 @@ public sealed class MinioFileStorageService : IFileStorageService
             if (sourceKey == destinationKey)
                 return sourceKey;
 
-            await _client.CopyObjectAsync(
+            await client.CopyObjectAsync(
                 new CopyObjectArgs()
                     .WithBucket(_options.BucketName)
                     .WithObject(destinationKey)
@@ -114,7 +107,7 @@ public sealed class MinioFileStorageService : IFileStorageService
 
         var fullPrefix = $"{_options.Prefix}/{prefix}";
 
-        await foreach (var item in _client.ListObjectsEnumAsync(
+        await foreach (var item in client.ListObjectsEnumAsync(
             new ListObjectsArgs()
                 .WithBucket(_options.BucketName)
                 .WithPrefix(fullPrefix)
@@ -134,14 +127,14 @@ public sealed class MinioFileStorageService : IFileStorageService
 
     private async Task EnsureBucketExistsAsync(CancellationToken cancellationToken)
     {
-        var exists = await _client.BucketExistsAsync(
+        var exists = await client.BucketExistsAsync(
             new BucketExistsArgs()
                 .WithBucket(_options.BucketName),
             cancellationToken);
 
         if (!exists)
         {
-            await _client.MakeBucketAsync(
+            await client.MakeBucketAsync(
                 new MakeBucketArgs()
                     .WithBucket(_options.BucketName),
                 cancellationToken);
@@ -169,7 +162,7 @@ public sealed class MinioFileStorageService : IFileStorageService
         }
         """;
 
-        await _client.SetPolicyAsync(
+        await client.SetPolicyAsync(
             new SetPolicyArgs()
                 .WithBucket(_options.BucketName)
                 .WithPolicy(policy),

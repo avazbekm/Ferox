@@ -73,7 +73,7 @@
                 IsEditable="True"
                 Text="{Binding ProductCode, UpdateSourceTrigger=LostFocus}"
                 ItemsSource="{Binding AvailableProducts}"
-                SelectedItem="{Binding CurrentProductEntry.Product, UpdateSourceTrigger=LostFocus}"
+                SelectedItem="{Binding CurrentProductEntry.Product, UpdateSourceTrigger=PropertyChanged}"
                 IsSearchEnabled="False"
                 ImageMemberPath="PhotoPath"
                 PrimaryTextMemberPath="Code"
