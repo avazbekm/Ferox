@@ -158,9 +158,9 @@ public partial class ProductPageViewModel : ViewModelBase
         if (!Validate()) return;
 
         ProductEntryRequest request = mapper.Map<ProductEntryRequest>(CurrentProductEntry);
-        if (IsNewProductMode && !string.IsNullOrWhiteSpace(CurrentProductEntry.Product?.SelectedImageFile))
+        if (IsNewProductMode && !string.IsNullOrWhiteSpace(CurrentProductEntry.Product?.ImagePath))
         {
-            var uploadedImagePath = await client.FileStorage.UploadFileAsync(CurrentProductEntry.Product.SelectedImageFile);
+            var uploadedImagePath = await client.FileStorage.UploadFileAsync(CurrentProductEntry.Product.ImagePath);
             if (uploadedImagePath is null)
             {
                 ErrorMessage = "Rasm yuklashda xatolik! Qaytadan urinib ko'ring.";

@@ -26,6 +26,8 @@ public interface IFileStorageService
     Task DeleteFileAsync(
         string objectKey,
         CancellationToken cancellationToken = default);
+
+    string GetFullUrl(string? objectKey);
 }
 
 public sealed record PresignedUploadResult

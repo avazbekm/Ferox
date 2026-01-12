@@ -183,4 +183,12 @@ public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioS
 
         return $"{prefix}/{timestamp}/{uniqueId}{extension}";
     }
+
+    public string GetFullUrl(string? objectKey)
+    {
+        if (string.IsNullOrWhiteSpace(objectKey)) return string.Empty;
+        if (objectKey.StartsWith("http")) return objectKey;
+
+        return $"{_options.Endpoint.TrimEnd('/')}/{_options.BucketName}/{objectKey.TrimStart('/')}";
+    }
 }

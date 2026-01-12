@@ -6,8 +6,6 @@ using Forex.ClientService.Enums;
 using Forex.Wpf.Pages.Common;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 public partial class ProductViewModel : ViewModelBase
 {
@@ -17,9 +15,7 @@ public partial class ProductViewModel : ViewModelBase
     [ObservableProperty] private string name = string.Empty;
     [ObservableProperty] private ProductionOrigin productionOrigin;
     [ObservableProperty] private UnitMeasuerViewModel unitMeasure = default!;
-    [ObservableProperty] private ImageSource? image;
     [ObservableProperty] private string imagePath = string.Empty;
-    [ObservableProperty] private string selectedImageFile = string.Empty;
 
     [ObservableProperty] private ObservableCollection<ProductTypeViewModel> productTypes = [];
     [ObservableProperty] private ProductTypeViewModel selectedType = new();
@@ -44,13 +40,7 @@ public partial class ProductViewModel : ViewModelBase
 
         if (dialog.ShowDialog() == true)
         {
-            SelectedImageFile = dialog.FileName;
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.UriSource = new Uri(dialog.FileName);
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.EndInit();
-            Image = bmp;
+            ImagePath = dialog.FileName;
         }
     }
 
@@ -69,7 +59,6 @@ public partial class ProductViewModel : ViewModelBase
                 Code = value.Code;
                 Name = value.Name;
                 UnitMeasure = value.UnitMeasure;
-                Image = value.Image;
                 SelectedType = value.SelectedType;
                 ProductTypes = new ObservableCollection<ProductTypeViewModel>(value.ProductTypes ?? []);
             }

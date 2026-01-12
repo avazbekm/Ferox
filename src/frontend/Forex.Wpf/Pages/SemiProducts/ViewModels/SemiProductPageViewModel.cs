@@ -450,7 +450,6 @@ public partial class SemiProductPageViewModel : ViewModelBase
                         Code = p.Code,
                         Name = p.Name,
                         UnitMeasure = p.UnitMeasure,
-                        Image = p.Image,
                         ProductTypes = new ObservableCollection<ProductTypeViewModel>(validTypes!)
                     };
                 })
