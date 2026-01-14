@@ -253,7 +253,7 @@
                                                     Height="26"
                                                     Margin="2,0"
                                                     Padding="0"
-                                                    Background="#2196F3"
+                                                    Background="#8BB8E8"
                                                     Click="BtnPrintSale_Click"
                                                     Tag="{Binding}"
                                                     ToolTip="Chop etish">
