@@ -28,7 +28,6 @@
 
   <ItemGroup>
     <Resource Include="Resources\Assets\bekson.png" />
-    <Resource Include="Resources\Assets\default.jpg" />
   </ItemGroup>
 
   <ItemGroup>

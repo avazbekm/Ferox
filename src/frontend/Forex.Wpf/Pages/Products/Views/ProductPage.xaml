@@ -74,13 +74,13 @@
                 Text="{Binding ProductCode, UpdateSourceTrigger=LostFocus}"
                 ItemsSource="{Binding AvailableProducts}"
                 SelectedItem="{Binding CurrentProductEntry.Product, UpdateSourceTrigger=PropertyChanged}"
-                IsSearchEnabled="False"
-                ImageMemberPath="PhotoPath"
+                IsSearchEnabled="True"
+                ImageMemberPath="ImagePath"
                 PrimaryTextMemberPath="Code"
                 SecondaryTextMemberPath="Name"
                 ShowImage="True"
-                ImageWidth="24"
-                ImageHeight="24"
+                ImageWidth="50"
+                ImageHeight="50"
                 Visibility="{Binding IsNewProductMode, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
 
 			<controls:FloatingInput

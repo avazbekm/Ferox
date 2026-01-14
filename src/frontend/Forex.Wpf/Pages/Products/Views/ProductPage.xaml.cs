@@ -42,7 +42,7 @@ public partial class ProductPage : Page
     {
         FocusNavigator.RegisterElements([
             date.input,
-            productCombo.input,
+            //productCombo.input,
             tbxCode.input,
             tbxName.input,
             cbxProductionOrigin.combo,
@@ -56,7 +56,7 @@ public partial class ProductPage : Page
             btnAdd,
             btnCancel
         ]);
-        FocusNavigator.SetFocusRedirect(btnAdd, productCombo.ComboBoxControl);
+        //FocusNavigator.SetFocusRedirect(btnAdd, productCombo.ComboBoxControl);
     }
 
     private void RegisterGlobalShortcuts()
@@ -91,14 +91,14 @@ public partial class ProductPage : Page
         double scrollHeight = scrollViewer.ScrollableHeight;
 
         if (scrollHeight > 0 && scrollPosition >= scrollHeight * 0.99)
-                await vm.LoadMoreEntriesCommand.ExecuteAsync(null);
+            await vm.LoadMoreEntriesCommand.ExecuteAsync(null);
     }
 
     private void OnFocusRequestReceived(string controlName)
     {
-        if (controlName == "ProductCode")
-            FocusNavigator.FocusElement(productCombo.ComboBoxControl);
-        else if (controlName == "ProductType")
-            FocusNavigator.FocusElement(cbxProductType.combo);
+        //if (controlName == "ProductCode")
+        //    FocusNavigator.FocusElement(productCombo.ComboBoxControl);
+        //else if (controlName == "ProductType")
+        //    FocusNavigator.FocusElement(cbxProductType.combo);
     }
 }

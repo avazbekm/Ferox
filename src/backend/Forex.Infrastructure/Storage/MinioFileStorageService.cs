@@ -187,8 +187,16 @@ public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioS
     public string GetFullUrl(string? objectKey)
     {
         if (string.IsNullOrWhiteSpace(objectKey)) return string.Empty;
-        if (objectKey.StartsWith("http")) return objectKey;
 
-        return $"{_options.Endpoint.TrimEnd('/')}/{_options.BucketName}/{objectKey.TrimStart('/')}";
+        if (objectKey.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return objectKey;
+
+        var endpoint = _options.Endpoint.TrimEnd('/');
+
+        string protocol = _options.UseSsl ? "https://" : "http://";
+
+        if (!endpoint.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            endpoint = $"{protocol}{endpoint}";
+
+        return $"{endpoint}/{_options.BucketName}/{objectKey.TrimStart('/')}";
     }
 }
