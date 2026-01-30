@@ -30,6 +30,7 @@
                       BorderThickness="0"
                       FontSize="14"
                       IsEditable="{Binding IsEditable, ElementName=Root}"
+					  TextSearch.TextPath="{Binding PrimaryTextMemberPath, ElementName=Root}"
                       ItemsSource="{Binding ItemsSource, ElementName=Root}"
                       SelectedItem="{Binding SelectedItem, ElementName=Root, Mode=TwoWay}"
                       Text="{Binding Text, ElementName=Root, Mode=TwoWay}"

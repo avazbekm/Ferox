@@ -167,9 +167,10 @@
                 Grid.Column="9"
                 Margin="2,0"
                 MinWidth="100"
+                MaxWidth="200"
                 Label="Rasm"
                 Visibility="{Binding IsNewProductMode, Converter={StaticResource BoolToVisibilityConverter}}"
-                FileName="{Binding CurrentProductEntry.Product.SelectedImageFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                FileName="{Binding CurrentProductEntry.Product.ImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 			<Button
                 x:Name="btnAdd"

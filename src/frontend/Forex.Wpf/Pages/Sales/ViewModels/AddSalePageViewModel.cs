@@ -799,7 +799,7 @@ public partial class AddSalePageViewModel : ViewModelBase
 
         var response = await client.Sales.Filter(request).Handle(isLoading => IsLoading = isLoading);
 
-        if (!response.IsSuccess || !response.Data.Any())
+        if (!response.IsSuccess)
         {
             ErrorMessage = response.Message ?? "Savdoni yuklashda xatolik!";
             return;
@@ -829,7 +829,7 @@ public partial class AddSalePageViewModel : ViewModelBase
                 if (product == null && saleItem.ProductType?.Product is not null)
                 {
                     product = mapper.Map<ProductViewModel>(saleItem.ProductType.Product);
-                    product.ProductTypes = new ObservableCollection<ProductTypeViewModel>();
+                    product.ProductTypes = [];
                     AvailableProducts.Add(product);
                 }
 
