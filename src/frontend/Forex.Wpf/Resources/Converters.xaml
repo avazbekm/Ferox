@@ -20,5 +20,7 @@
 	<conv:ArrayMultiValueConverter x:Key="ArrayMultiValueConverter" />
 	<conv:IndexConverter x:Key="IndexConverter" />
 	<conv:UniversalImageResolver x:Key="UniversalImageResolver" />
+	<conv:NumberToBoolConverter x:Key="NumberToBoolConverter" />
+	<conv:NumberToVisibilityConverter x:Key="NumberToVisibilityConverter" />
 
 </ResourceDictionary>

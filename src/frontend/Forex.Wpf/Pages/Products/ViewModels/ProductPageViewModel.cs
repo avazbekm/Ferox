@@ -27,14 +27,14 @@ public partial class ProductPageViewModel : ViewModelBase
     private bool hasMoreItems = true;
     private const int PageSize = 35;
     [ObservableProperty] private bool isNewProductMode;
-    [ObservableProperty] private ProductViewModel currentProduct = new();
+    [ObservableProperty] private ProductViewModel currentProduct;
 
     public ProductPageViewModel(IMapper mapper, ForexClient client)
     {
         this.mapper = mapper;
         this.client = client;
-        CurrentProductEntry.PropertyChanged += OnCurrentEntryPropertyChanged;
-        CurrentProduct.PropertyChanged += OnProductPropertyChanged;
+        CurrentProductEntry = new();
+        CurrentProduct = new();
         _ = LoadDataAsync();
     }
 
@@ -43,7 +43,7 @@ public partial class ProductPageViewModel : ViewModelBase
     [ObservableProperty] private ProductEntryViewModel? selectedProductEntry;
     [ObservableProperty] private string productType = string.Empty;
     [ObservableProperty] private string productCode = string.Empty;
-    [ObservableProperty] private ProductEntryViewModel currentProductEntry = new();
+    [ObservableProperty] private ProductEntryViewModel currentProductEntry;
 
     public static IEnumerable<ProductionOrigin> ProductionOrigins => Enum.GetValues<ProductionOrigin>();
 
@@ -96,20 +96,77 @@ public partial class ProductPageViewModel : ViewModelBase
 
     #region Event Handlers
 
+    partial void OnCurrentProductEntryChanged(ProductEntryViewModel? oldValue, ProductEntryViewModel newValue)
+    {
+        if (oldValue is not null)
+            oldValue.PropertyChanged -= OnCurrentEntryPropertyChanged;
+
+        if (newValue is not null)
+            newValue.PropertyChanged += OnCurrentEntryPropertyChanged;
+    }
+
+    partial void OnCurrentProductChanged(ProductViewModel? oldValue, ProductViewModel newValue)
+    {
+        if (oldValue is not null)
+            oldValue.PropertyChanged -= OnProductPropertyChanged;
+
+        if (newValue is not null)
+        {
+            newValue.PropertyChanged += OnProductPropertyChanged;
+            CurrentProductEntry.ProductionOrigin = newValue.ProductionOrigin;
+
+            if (ProductCode != newValue.Code)
+                ProductCode = newValue.Code;
+        }
+    }
+
+    private void OnCurrentEntryPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ProductEntryViewModel.BundleCount) or nameof(ProductEntryViewModel.BundleItemCount))
+        {
+            if (CurrentProductEntry.BundleCount.HasValue && CurrentProductEntry.BundleItemCount.HasValue)
+                CurrentProductEntry.Count = CurrentProductEntry.BundleCount * CurrentProductEntry.BundleItemCount;
+        }
+    }
+
+    private void OnProductPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ProductViewModel.SelectedType) && CurrentProduct.SelectedType is not null)
+            UpdateEntryCalculations();
+    }
+
     partial void OnProductCodeChanged(string? oldValue, string newValue)
     {
-        AvailableProducts.Remove(AvailableProducts.FirstOrDefault(c => c.Code == oldValue && c.Id < 1)!);
+        if (!string.IsNullOrEmpty(oldValue))
+        {
+            var toRemove = AvailableProducts.FirstOrDefault(c => c.Code == oldValue && c.Id < 1);
+            if (toRemove != null)
+            {
+                AvailableProducts.Remove(toRemove);
+            }
+        }
 
-        if (string.IsNullOrWhiteSpace(newValue) || CurrentProduct.Code == newValue) return;
+        if (string.IsNullOrWhiteSpace(newValue) || (CurrentProduct != null && CurrentProduct.Code == newValue))
+            return;
 
         var existing = AvailableProducts.FirstOrDefault(c => string.Equals(c.Code, newValue, StringComparison.OrdinalIgnoreCase));
-        if (existing is not null) CurrentProduct = existing;
+
+        if (existing is not null)
+        {
+            CurrentProduct = existing;
+            IsNewProductMode = false;
+        }
         else if (Confirm($"'{newValue}' yangi mahsulot sifatida qo'shilsinmi?"))
         {
-            CurrentProduct = new() { Code = newValue };
+            CurrentProduct = new ProductViewModel { Code = newValue };
             IsNewProductMode = true;
+            CurrentProduct.ImagePath = string.Empty;
         }
-        else { ProductCode = string.Empty; WeakReferenceMessenger.Default.Send(new FocusControlMessage("ProductCode")); }
+        else
+        {
+            ProductCode = string.Empty;
+            WeakReferenceMessenger.Default.Send(new FocusControlMessage("ProductCode"));
+        }
     }
 
     partial void OnProductTypeChanged(string? oldValue, string newValue)
@@ -130,33 +187,6 @@ public partial class ProductPageViewModel : ViewModelBase
         else { ProductType = string.Empty; WeakReferenceMessenger.Default.Send(new FocusControlMessage("ProductType")); }
     }
 
-    private void OnCurrentEntryPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName is nameof(ProductEntryViewModel.BundleCount) or nameof(ProductEntryViewModel.BundleItemCount))
-        {
-            if (CurrentProductEntry.BundleCount.HasValue && CurrentProductEntry.BundleItemCount.HasValue)
-                CurrentProductEntry.Count = CurrentProductEntry.BundleCount * CurrentProductEntry.BundleItemCount;
-        }
-    }
-
-    partial void OnCurrentProductChanged(ProductViewModel? oldValue, ProductViewModel newValue)
-    {
-        if (oldValue is not null) oldValue.PropertyChanged -= OnProductPropertyChanged;
-        if (newValue is not null)
-        {
-            newValue.PropertyChanged += OnProductPropertyChanged;
-            CurrentProductEntry.ProductionOrigin = newValue.ProductionOrigin;
-            if (ProductCode != newValue.Code)
-                ProductCode = newValue.Code;
-        }
-    }
-
-    private void OnProductPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(ProductViewModel.SelectedType) && CurrentProduct.SelectedType is not null)
-            UpdateEntryCalculations();
-    }
-
     #endregion
 
     #region Commands
@@ -166,19 +196,12 @@ public partial class ProductPageViewModel : ViewModelBase
     {
         if (!Validate()) return;
 
-        // Entry ni map qilish
         ProductEntryRequest request = mapper.Map<ProductEntryRequest>(CurrentProductEntry);
-
-        // Product ni alohida map qilib qo'shish (chunki Entry ichida Product yo'q)
         request.Product = mapper.Map<ProductRequest>(CurrentProduct);
 
-        // SelectedType ni qo'shish
         if (CurrentProduct.SelectedType is not null)
-        {
             request.Product.ProductTypes = [CurrentProduct.SelectedType.Adapt<ProductTypeRequest>()];
-        }
 
-        // Rasm yuklash (yangi mahsulot uchun)
         if (IsNewProductMode && !string.IsNullOrWhiteSpace(CurrentProduct.ImagePath))
         {
             var uploadedImagePath = await client.FileStorage.UploadFileAsync(CurrentProduct.ImagePath);
@@ -249,7 +272,6 @@ public partial class ProductPageViewModel : ViewModelBase
 
         CurrentProductEntry = mapper.Map<ProductEntryViewModel>(SelectedProductEntry);
 
-        // Product ma'lumotlarini yuklash
         var product = AvailableProducts.FirstOrDefault(p => p.Id == SelectedProductEntry.ProductType!.ProductId);
         if (product is null && SelectedProductEntry.ProductType?.Product is not null)
             product = AvailableProducts.FirstOrDefault(p => p.Code == SelectedProductEntry.ProductType.Product.Code);
@@ -259,21 +281,18 @@ public partial class ProductPageViewModel : ViewModelBase
             CurrentProduct = product;
             ProductCode = CurrentProduct.Code;
 
-            // Type ni set qilish
             var type = CurrentProduct.ProductTypes.FirstOrDefault(pt => pt.Type == SelectedProductEntry.ProductType!.Type);
             if (type is not null)
                 CurrentProduct.SelectedType = type;
             else
             {
-                // Fallback: Agar type ro'yxatda topilmasa, entry dan olish
-                CurrentProduct.SelectedType = SelectedProductEntry.ProductType;
+                CurrentProduct.SelectedType = SelectedProductEntry.ProductType!;
                 if (!CurrentProduct.ProductTypes.Any(pt => pt.Type == SelectedProductEntry.ProductType!.Type))
                     CurrentProduct.ProductTypes.Add(SelectedProductEntry.ProductType!);
             }
         }
         else
         {
-            // Fallback: product topilmasa, yangi object
             CurrentProduct = new ProductViewModel();
             ProductCode = string.Empty;
         }
@@ -335,10 +354,6 @@ public partial class ProductPageViewModel : ViewModelBase
         return false;
     }
 
-    #endregion
-
-    #region Helpers
-
     private void UpdateEntryCalculations()
     {
         if (CurrentProduct?.SelectedType is not null)
@@ -350,5 +365,6 @@ public partial class ProductPageViewModel : ViewModelBase
                 CurrentProductEntry.Count = CurrentProductEntry.BundleCount * CurrentProductEntry.BundleItemCount;
         }
     }
+
     #endregion Helpers
 }

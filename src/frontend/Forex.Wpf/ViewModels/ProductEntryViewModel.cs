@@ -20,4 +20,4 @@ public partial class ProductEntryViewModel : ViewModelBase
     [ObservableProperty] private decimal? costPrice;
     [ObservableProperty] private decimal? preparationCostPerUnit;
     [ObservableProperty] private decimal? totalAmount;
-} 
+}

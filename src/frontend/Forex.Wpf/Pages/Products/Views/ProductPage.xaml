@@ -64,16 +64,15 @@
 
                 <!-- Product -->
 			<controls:FloatingImageComboBox 
-                Grid.Column="1"
-                Margin="2,0"
-                MinWidth="200"
-                Grid.ColumnSpan="2"
+                Grid.Column="1" Grid.ColumnSpan="2"
                 Label="Mahsulot"
-                x:Name="productCombo"
-                IsEditable="True"
                 Text="{Binding ProductCode, UpdateSourceTrigger=LostFocus}"
                 ItemsSource="{Binding AvailableProducts}"
+                Margin="2,0"
                 SelectedItem="{Binding CurrentProduct, UpdateSourceTrigger=PropertyChanged}"
+                MinWidth="200"
+                x:Name="productCombo"
+                IsEditable="True"
                 IsSearchEnabled="True"
                 ImageMemberPath="ImagePath"
                 PrimaryTextMemberPath="Code"
@@ -145,13 +144,14 @@
                 Grid.Column="6"
                 Margin="2,0"
                 Label="Donasi"
+                IsReadOnly="{Binding CurrentProduct.SelectedType.Id, Converter={StaticResource NumberToBoolConverter}}"
                 Text="{Binding CurrentProductEntry.BundleItemCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 			<controls:FloatingInput
                 x:Name="tbxQuantity"
                 Grid.Column="7"
                 Margin="2,0"
-                IsEnabled="False"
+                IsReadOnly="True"
                 Label="Jami soni"
                 Text="{Binding CurrentProductEntry.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -167,7 +167,7 @@
                 Grid.Column="9"
                 Margin="2,0"
                 MinWidth="100"
-                MaxWidth="200"
+                MaxWidth="150"
                 Label="Rasm"
                 Visibility="{Binding IsNewProductMode, Converter={StaticResource BoolToVisibilityConverter}}"
                 FileName="{Binding CurrentProduct.ImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
