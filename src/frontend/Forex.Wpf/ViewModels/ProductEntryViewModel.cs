@@ -8,7 +8,6 @@ public partial class ProductEntryViewModel : ViewModelBase
 {
     public long Id { get; set; }
 
-    [ObservableProperty] private ProductViewModel product = new();
     [ObservableProperty] private int? count;
     [ObservableProperty] private int? availableCount;
     [ObservableProperty] private ProductionOrigin? productionOrigin;
@@ -21,6 +20,4 @@ public partial class ProductEntryViewModel : ViewModelBase
     [ObservableProperty] private decimal? costPrice;
     [ObservableProperty] private decimal? preparationCostPerUnit;
     [ObservableProperty] private decimal? totalAmount;
-
-    public bool IsNewProduct => Product is not null && Product.Id == 0;
-}
+} 

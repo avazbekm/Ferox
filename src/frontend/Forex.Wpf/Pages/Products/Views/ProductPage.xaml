@@ -73,7 +73,7 @@
                 IsEditable="True"
                 Text="{Binding ProductCode, UpdateSourceTrigger=LostFocus}"
                 ItemsSource="{Binding AvailableProducts}"
-                SelectedItem="{Binding CurrentProductEntry.Product, UpdateSourceTrigger=PropertyChanged}"
+                SelectedItem="{Binding CurrentProduct, UpdateSourceTrigger=PropertyChanged}"
                 IsSearchEnabled="True"
                 ImageMemberPath="ImagePath"
                 PrimaryTextMemberPath="Code"
@@ -90,7 +90,7 @@
                 Margin="2,0"
                 Label="Kodi"
                 Visibility="{Binding IsNewProductMode, Converter={StaticResource BoolToVisibilityConverter}}"
-                Text="{Binding CurrentProductEntry.Product.Code, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Text="{Binding CurrentProduct.Code, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 			<controls:FloatingInput
                 x:Name="tbxName"
@@ -99,7 +99,7 @@
                 Margin="2,0"
                 Label="Nomi"
                 Visibility="{Binding IsNewProductMode, Converter={StaticResource BoolToVisibilityConverter}}"
-                Text="{Binding CurrentProductEntry.Product.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Text="{Binding CurrentProduct.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 			<!-- Product -->
 
 			<controls:FloatingComboBox
@@ -118,10 +118,10 @@
                 Margin="2,0"
                 DisplayMemberPath="Type"
                 IsEditable="True"
-                ItemsSource="{Binding CurrentProductEntry.Product.ProductTypes}"
+                ItemsSource="{Binding CurrentProduct.ProductTypes}"
                 Label="Razmer"
                 Visibility="{Binding IsNewProductMode, Converter={StaticResource InverseBoolToVisibilityConverter}}"
-                SelectedItem="{Binding CurrentProductEntry.Product.SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                SelectedItem="{Binding CurrentProduct.SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Text="{Binding ProductType, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
 
 			<controls:FloatingInput
@@ -130,7 +130,7 @@
                 Margin="2,0"
                 Label="Razmer"
                 Visibility="{Binding IsNewProductMode, Converter={StaticResource BoolToVisibilityConverter}}"
-                Text="{Binding CurrentProductEntry.Product.SelectedType.Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Text="{Binding CurrentProduct.SelectedType.Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 			<!-- Type -->
 
 			<controls:FloatingInput
@@ -170,7 +170,7 @@
                 MaxWidth="200"
                 Label="Rasm"
                 Visibility="{Binding IsNewProductMode, Converter={StaticResource BoolToVisibilityConverter}}"
-                FileName="{Binding CurrentProductEntry.Product.ImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                FileName="{Binding CurrentProduct.ImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 			<Button
                 x:Name="btnAdd"
