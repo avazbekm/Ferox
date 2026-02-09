@@ -100,7 +100,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
             // TO‘LOV → Transaction bo‘lsa → IsIncome ga qarab, bo‘lmasa Amount ga qarab
             else if (op.Type == ClientService.Enums.OperationType.Transaction)
             {
-                if (op.Transaction != null)
+                if (op.Transaction is not null)
                 {
                     credit = op.Transaction.IsIncome == true ? op.Amount : 0;
                     debit = op.Transaction.IsIncome == false ? Math.Abs(op.Amount) : 0;
@@ -132,7 +132,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
     private async Task OnTabSelectedAsync()
     {
         // Agar mijoz tanlangan bo'lsa va ma'lumotlar hali yuklanmagan bo'lsa (yoki yangilash kerak bo'lsa)
-        if (SelectedCustomer != null)
+        if (SelectedCustomer is not null)
         {
             await LoadDataAsync();
         }
@@ -320,7 +320,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
         {
             try
             {
-                if (SelectedCustomer == null) return;
+                if (SelectedCustomer is null) return;
 
                 string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 string folder = Path.Combine(docs, "Forex");
@@ -405,7 +405,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
             // 1. HEADER (Sarlavha, Mijoz, Davr)
             if (isFirstPage)
             {
-                container.Children.Add(CreateTitleAndInfo(SelectedCustomer?.Name, BeginDate, EndDate));
+                container.Children.Add(CreateTitleAndInfo(SelectedCustomer?.Name!, BeginDate, EndDate));
                 currentY += initialHeaderHeight;
             }
 
@@ -517,7 +517,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
         for (int i = 0; i < totalPages; i++)
         {
             var p = (FixedPage)((PageContent)doc.Pages[i]).GetPageRoot(false);
-            if (p != null)
+            if (p is not null)
             {
                 UpdatePageFooter(p, i + 1, totalPages);
             }
@@ -565,7 +565,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
 
         // Avvalgi PageInfo elementini topishga harakat qilish (agar bor bo'lsa)
         // FixedPage.Children ni aylanib chiqish va topish.
-        TextBlock existingPageInfo = null;
+        TextBlock existingPageInfo = null!;
         foreach (var child in page.Children.OfType<TextBlock>())
         {
             // FixedPage.SetRight/SetBottom orqali joylashganligini tekshirishning ishonchli usuli yo'q,
@@ -577,7 +577,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
             }
         }
 
-        if (existingPageInfo != null)
+        if (existingPageInfo is not null)
         {
             page.Children.Remove(existingPageInfo);
         }
@@ -731,7 +731,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
             foreach (var pageContent in doc.Pages)
             {
                 var fixedPage = pageContent.GetPageRoot(false);
-                if (fixedPage == null) continue;
+                if (fixedPage is null) continue;
 
                 // 1. FixedPage Layout-ni yangilash
                 // O'lchash (Measure) va joylashtirish (Arrange) orqali UI elementlarining haqiqiy o'lchamlarini olish

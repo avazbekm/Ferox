@@ -454,7 +454,7 @@
                                                 Margin="2,0"
                                                 Padding="0"
                                                 Background="#D32F2F"
-                                                Click="btnDelete_Click"
+                                                Click="BtnDelete_Click"
                                                 Cursor="Hand"
                                                 FontSize="12"
                                                 FontWeight="Bold"

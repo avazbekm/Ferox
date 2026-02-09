@@ -26,7 +26,7 @@ public partial class UserPage : Page
     private List<UserResponse> rawUsers = [];
     private ObservableCollection<UserResponse> filteredUsers = [];
     private bool isCreatingNewUser = false;
-    private UserResponse currentUser;
+    private UserResponse? currentUser;
 
     public UserPage()
     {
@@ -175,7 +175,7 @@ public partial class UserPage : Page
             btnUpdate.IsEnabled = true;
             btnUpdate.Visibility = Visibility.Collapsed;
             btnSave.Visibility = GetSaveButtonVisibility();
-            currentUser = null;
+            currentUser = null!;
         }
     }
     private async void LoadValyutaType()
@@ -597,8 +597,8 @@ public partial class UserPage : Page
 
     private decimal GetOpeningBalance()
     {
-        string debtText = tbDebt.Text?.Trim();
-        string accountText = tbAccount.Text?.Trim();
+        string debtText = tbDebt.Text?.Trim()!;
+        string accountText = tbAccount.Text?.Trim()!;
 
         if (!string.IsNullOrWhiteSpace(debtText) &&
             decimal.TryParse(debtText, out decimal debt) &&
@@ -617,11 +617,11 @@ public partial class UserPage : Page
         return 0;
     }
 
-    private async void btnDelete_Click(object sender, RoutedEventArgs e)
+    private async void BtnDelete_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            UserResponse user = null;
+            UserResponse user = null!;
 
             // Bir nechta usul bilan foydalanuvchini olish
             if (sender is Button btn)
@@ -672,7 +672,7 @@ public partial class UserPage : Page
                 ClearForm();
                 btnSave.Visibility = GetSaveButtonVisibility();
                 btnUpdate.Visibility = Visibility.Collapsed;
-                currentUser = null;
+                currentUser = null!;
             }
             else
             {

@@ -20,7 +20,7 @@ public class UniversalImageResolver : IMultiValueConverter
 
         try
         {
-            var prop = contextItem.GetType().GetProperty(pathPropertyName);
+            var prop = contextItem.GetType().GetProperty(pathPropertyName!);
             var rawValue = prop?.GetValue(contextItem);
 
             if (rawValue is null)
