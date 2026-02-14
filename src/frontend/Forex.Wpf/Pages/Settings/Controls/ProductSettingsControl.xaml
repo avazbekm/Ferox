@@ -59,7 +59,7 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="4">
                                 <Image Width="32" Height="32"
-                                       Source="{Binding ImagePath, Converter={StaticResource ImagePathConverter}}"
+                                       Source="{Binding ImagePath, Converter={StaticResource UniversalImageResolver}}"
                                        Stretch="UniformToFill"
                                        Margin="0,0,8,0">
                                     <Image.Clip>
@@ -94,7 +94,7 @@
                                 CornerRadius="8"
                                 Background="{DynamicResource MaterialDesignDivider}"
                                 Margin="0,0,16,0">
-							<Image Source="{Binding SelectedProduct.ImagePath, Converter={StaticResource ImagePathConverter}}"
+							<Image Source="{Binding SelectedProduct.ImagePath, Converter={StaticResource UniversalImageResolver}}"
                                    Stretch="UniformToFill"/>
                         </Border>
                         <StackPanel VerticalAlignment="Center">

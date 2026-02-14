@@ -79,7 +79,6 @@ public partial class ProductSettingsViewModel : ViewModelBase
 
         if (SelectedProduct.Id > 0)
         {
-            // UPDATE — backend rasmni boshqaradi (temp→permanent, eski rasm o'chirish)
             var response = await client.Products.Update(request).Handle(l => IsLoading = l);
             if (response.IsSuccess)
                 SuccessMessage = "Mahsulot muvaffaqiyatli yangilandi!";
@@ -88,7 +87,6 @@ public partial class ProductSettingsViewModel : ViewModelBase
         }
         else
         {
-            // CREATE — backend rasmni temp dan ko'chiradi
             var response = await client.Products.Create(request).Handle(l => IsLoading = l);
             if (response.IsSuccess)
             {
@@ -185,12 +183,12 @@ public partial class ProductSettingsViewModel : ViewModelBase
 
         if (dialog.ShowDialog() == true)
         {
-            // Rasmni serverga yuklaymiz (temp folderga tushadi)
             var uploadedPath = await client.FileStorage.UploadFileAsync(dialog.FileName);
 
             if (!string.IsNullOrEmpty(uploadedPath))
             {
-                SelectedProduct.ImagePath = uploadedPath;
+                 SelectedProduct.ImagePath = uploadedPath;
+                OnPropertyChanged(nameof(SelectedProduct));
                 SuccessMessage = "Rasm yuklandi! Saqlash tugmasini bosishni unutmang.";
             }
             else
@@ -205,7 +203,6 @@ public partial class ProductSettingsViewModel : ViewModelBase
     {
         if (SelectedProduct is null) return;
 
-        // ImagePath ni bo'shatamiz, saqlash bosilganda backend eski faylni o'chiradi
         SelectedProduct.ImagePath = string.Empty;
         SuccessMessage = "Rasm o'chirildi! Saqlash tugmasini bosing.";
     }

@@ -22,6 +22,5 @@
 	<conv:UniversalImageResolver x:Key="UniversalImageResolver" />
 	<conv:NumberToBoolConverter x:Key="NumberToBoolConverter" />
 	<conv:NumberToVisibilityConverter x:Key="NumberToVisibilityConverter" />
-	<conv:ImagePathConverter x:Key="ImagePathConverter" />
 
 </ResourceDictionary>
