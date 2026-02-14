@@ -12,5 +12,6 @@ public sealed record ProductEntryRequest
     public decimal UnitPrice { get; set; }
     public ProductionOrigin ProductionOrigin { get; set; }
 
+    public long? ProductTypeId { get; set; }
     public ProductRequest Product { get; set; } = default!;
 }

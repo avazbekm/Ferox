@@ -10,6 +10,14 @@ using Microsoft.AspNetCore.Mvc;
 public class ProductsController
     : QueryControllers<ProductDto, GetAllProductsQuery, GetProductByIdQuery>
 {
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateProductCommand command)
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
+
+    [HttpPut]
+    public async Task<IActionResult> Update([FromBody] UpdateProductCommand command)
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
+
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
         => Ok(new Response { Data = await Mediator.Send(new DeleteProductCommand(id), Ct) });

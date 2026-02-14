@@ -1,0 +1,224 @@
+<UserControl x:Class="Forex.Wpf.Pages.Settings.Controls.ProductSettingsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:fa="http://schemas.awesome.incremented/wpf/xaml/fontawesome.sharp"
+             xmlns:resConverters="clr-namespace:Forex.Wpf.Resources.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="900">
+
+	<UserControl.Resources>
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="ActionButtonStyle" TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="md:ButtonAssist.CornerRadius" Value="4"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="16"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" 
+                Background="{DynamicResource MaterialDesignCardBackground}"
+                CornerRadius="8"
+                Padding="12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Mahsulotlar" Style="{StaticResource SectionHeaderStyle}"/>
+
+                <Button Grid.Row="1" 
+                        Content="➕ Yangi Mahsulot"
+                        Command="{Binding AddProductCommand}"
+                        Style="{StaticResource ActionButtonStyle}"
+                        HorizontalAlignment="Stretch"
+                        Margin="0,0,0,12"/>
+
+                <ListBox Grid.Row="2"
+                         ItemsSource="{Binding Products}"
+                         SelectedItem="{Binding SelectedProduct}"
+                         BorderThickness="0"
+                         Background="Transparent">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="4">
+                                <Image Width="32" Height="32"
+                                       Source="{Binding ImagePath, Converter={StaticResource ImagePathConverter}}"
+                                       Stretch="UniformToFill"
+                                       Margin="0,0,8,0">
+                                    <Image.Clip>
+                                        <RectangleGeometry Rect="0,0,32,32" RadiusX="4" RadiusY="4"/>
+                                    </Image.Clip>
+                                </Image>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}" FontWeight="Medium"/>
+                                    <TextBlock Text="{Binding Code}" 
+                                               FontSize="11" 
+                                               Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+        <!-- O'NG: Tanlangan mahsulot detallari -->
+        <Border Grid.Column="2"
+                Background="{DynamicResource MaterialDesignCardBackground}"
+                CornerRadius="8"
+                Padding="16"
+                Visibility="{Binding HasSelectedProduct, Converter={StaticResource BoolToVisibilityConverter}}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- Mahsulot rasmi -->
+                    <TextBlock Text="Rasm" Style="{StaticResource SectionHeaderStyle}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <Border Width="120" Height="120" 
+                                CornerRadius="8"
+                                Background="{DynamicResource MaterialDesignDivider}"
+                                Margin="0,0,16,0">
+							<Image Source="{Binding SelectedProduct.ImagePath, Converter={StaticResource ImagePathConverter}}"
+                                   Stretch="UniformToFill"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <Button Content="📷 Rasm Yuklash"
+                                    Command="{Binding UploadImageCommand}"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Margin="0,0,0,8"/>
+                            <Button Content="🗑 Rasmni O'chirish"
+                                    Command="{Binding DeleteImageCommand}"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Foreground="IndianRed"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Asosiy ma'lumotlar -->
+                    <TextBlock Text="Asosiy Ma'lumotlar" Style="{StaticResource SectionHeaderStyle}"/>
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBox Grid.Column="0" Grid.Row="0"
+                                 md:HintAssist.Hint="Mahsulot Kodi"
+                                 Text="{Binding SelectedProduct.Code, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Margin="0,0,0,12"/>
+
+                        <TextBox Grid.Column="2" Grid.Row="0"
+                                 md:HintAssist.Hint="Mahsulot Nomi"
+                                 Text="{Binding SelectedProduct.Name, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Margin="0,0,0,12"/>
+                    </Grid>
+
+                    <!-- Mahsulot Turlari -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Mahsulot Turlari (Razmerlar)" Style="{StaticResource SectionHeaderStyle}"/>
+
+                        <Button Grid.Row="1" 
+                                Content="➕ Yangi Tur Qo'shish"
+                                Command="{Binding AddProductTypeCommand}"
+                                Style="{StaticResource ActionButtonStyle}"
+                                HorizontalAlignment="Left"
+                                Margin="0,0,0,8"/>
+
+                        <DataGrid Grid.Row="2"
+                                  ItemsSource="{Binding SelectedProduct.ProductTypes}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="1"
+                                  BorderBrush="{DynamicResource MaterialDesignDivider}"
+                                  MaxHeight="200">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Tur (Razmer)" 
+                                                    Binding="{Binding Type, UpdateSourceTrigger=PropertyChanged}" 
+                                                    Width="2*"/>
+                                <DataGridTextColumn Header="Dona/Bog'" 
+                                                    Binding="{Binding BundleItemCount, UpdateSourceTrigger=PropertyChanged}" 
+                                                    Width="*"/>
+                                <DataGridTextColumn Header="Narxi" 
+                                                    Binding="{Binding UnitPrice, UpdateSourceTrigger=PropertyChanged}" 
+                                                    Width="*"/>
+                                <DataGridTemplateColumn Header="" Width="65">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding DataContext.DeleteProductTypeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource MaterialDesignIconButton}"
+                                                    ToolTip="O'chirish"
+                                                    Width="32" Height="32">
+                                                <fa:IconImage Icon="Trash" Width="14" Foreground="IndianRed"/>
+                                            </Button>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+
+                    <!-- Amallar -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                        <Button Content="💾 Saqlash"
+                                Command="{Binding SaveProductCommand}"
+                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                md:ButtonAssist.CornerRadius="4"
+                                Margin="0,0,12,0"/>
+                        <Button Content="🗑 Mahsulotni O'chirish"
+                                Command="{Binding DeleteProductCommand}"
+                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                md:ButtonAssist.CornerRadius="4"
+                                Foreground="IndianRed"
+                                BorderBrush="IndianRed"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Bo'sh holat -->
+        <Border Grid.Column="2"
+                Background="{DynamicResource MaterialDesignCardBackground}"
+                CornerRadius="8"
+                Visibility="{Binding HasSelectedProduct, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <fa:IconImage Icon="BoxOpen" Width="64" Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                <TextBlock Text="Tahrirlash uchun mahsulot tanlang"
+                           FontSize="14"
+                           Foreground="{DynamicResource MaterialDesignBodyLight}"
+                           Margin="0,12,0,0"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

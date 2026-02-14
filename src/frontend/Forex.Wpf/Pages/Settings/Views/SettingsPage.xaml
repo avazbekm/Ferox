@@ -35,6 +35,10 @@
             <TabItem Header="O'lchov birliklari">
                 <controls:UnitMeasureSettingsControl />
             </TabItem>
+            
+            <TabItem Header="Mahsulotlar">
+                <controls:ProductSettingsControl />
+            </TabItem>
         </TabControl>
     </Grid>
 </Page>

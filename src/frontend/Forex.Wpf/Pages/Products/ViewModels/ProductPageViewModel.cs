@@ -183,6 +183,9 @@ public partial class ProductPageViewModel : ViewModelBase
         {
             CurrentProduct.SelectedType = new() { Type = newValue };
             types.Add(CurrentProduct.SelectedType);
+
+            CurrentProduct.ProductTypes = new ObservableCollection<ProductTypeViewModel>(types);
+            OnPropertyChanged(nameof(CurrentProduct));
         }
         else { ProductType = string.Empty; WeakReferenceMessenger.Default.Send(new FocusControlMessage("ProductType")); }
     }
@@ -299,6 +302,26 @@ public partial class ProductPageViewModel : ViewModelBase
 
         ProductEntries.Remove(SelectedProductEntry);
         SelectedProductEntry = null;
+    }
+
+    [RelayCommand]
+    private async Task Delete(ProductEntryViewModel? entry)
+    {
+        if (entry is null) return;
+
+        if (!Confirm("Ushbu kirimni o'chirmoqchimisiz?")) return;
+
+        var response = await client.ProductEntries.Delete(entry.Id).Handle(l => IsLoading = l);
+
+        if (response.IsSuccess)
+        {
+            ProductEntries.Remove(entry);
+            SuccessMessage = "Muvaffaqiyatli o'chirildi!";
+        }
+        else
+        {
+            ErrorMessage = response.Message ?? "O'chirishda xatolik!";
+        }
     }
 
     [RelayCommand]

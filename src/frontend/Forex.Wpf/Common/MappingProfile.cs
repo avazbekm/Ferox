@@ -30,7 +30,6 @@ public static class MappingProfile
             .PreserveReference(true);
 
         config.NewConfig<ProductEntryViewModel, ProductEntryRequest>();
-        // AfterMapping olib tashlandi - Product mapping endi Save() metodida qo'lda bajariladi
         config.NewConfig<ProductEntryResponse, ProductEntryViewModel>()
             .Map(dest => dest.BundleCount, src => src.Count / src.BundleItemCount)
             .Map(dest => dest.Date, src => src.Date.ToLocalTime());

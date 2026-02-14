@@ -37,28 +37,7 @@ public partial class AddSalePage : Page
 
     private void RegisterFocusNavigation()
     {
-        FocusNavigator.RegisterElements(
-            [
-                btnBack,
-                date.input,
-                cbxCustomerName,
-                tbxTotalSum,
-                tbxFinalAmount,
-                tbxNote,
-                cbxProductCode.combo,
-                cbxProductName.combo,
-                cbxProductType.combo,
-                tbxBundle.input,
-                tbxQuantity.input,
-                tbxQuantity.input,
-                tbxUnitPrice.input,
-                tbxTotalAmount.input,
-                btnAdd,
-                btnSubmit
-            ]);
-
-        FocusNavigator.FocusElement(date.input);
-        FocusNavigator.SetFocusRedirect(btnAdd, cbxProductCode.combo);
+        // Focus navigation vaqtincha o'chirildi
     }
 
     private void RegisterGlobalShortcuts()

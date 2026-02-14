@@ -28,6 +28,19 @@ public class CreateProductEntryCommandHandler(
 {
     public async Task<long> Handle(CreateProductEntryCommand request, CancellationToken cancellationToken)
     {
+        // ✅ VALIDATSIYA: Majburiy qiymatlarni tekshirish
+        if (request.Count <= 0)
+            throw new AppException("Mahsulot miqdori (Count) 0 dan katta bo'lishi shart!");
+
+        if (request.BundleItemCount <= 0)
+            throw new AppException("Qopdagi dona soni (BundleItemCount) 0 dan katta bo'lishi shart!");
+
+        if (request.UnitPrice <= 0)
+            throw new AppException("Birlik narxi (UnitPrice) 0 dan katta bo'lishi shart!");
+
+        if (request.PreparationCostPerUnit < 0)
+            throw new AppException("Tayyorlanish narxi manfiy bo'lishi mumkin emas!");
+
         await context.BeginTransactionAsync(cancellationToken);
 
         try
