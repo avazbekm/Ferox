@@ -54,74 +54,7 @@ public partial class FloatingImageComboBox : UserControl
     public static readonly DependencyProperty ItemHoverScaleProperty = DependencyProperty.Register(nameof(ItemHoverScale), typeof(double), typeof(FloatingImageComboBox), new PropertyMetadata(1.0));
     public double ItemHoverScale { get => (double)GetValue(ItemHoverScaleProperty); set => SetValue(ItemHoverScaleProperty, value); }
 
-    private ComboBoxItem _lastHoveredItem;
-    private ComboBoxItem _lastHighlightedItem;
-
     private void ComboBox_GotFocus(object sender, RoutedEventArgs e) => combo.IsDropDownOpen = true;
-
-    private void ComboBoxItem_Loaded(object sender, RoutedEventArgs e)
-    {
-        if (sender is not ComboBoxItem item) return;
-
-        if (item.RenderTransform is not ScaleTransform)
-        {
-            item.RenderTransform = new ScaleTransform(1, 1);
-        }
-
-        var descriptor = DependencyPropertyDescriptor.FromProperty(ComboBoxItem.IsHighlightedProperty, typeof(ComboBoxItem));
-        descriptor?.AddValueChanged(item, OnItemHighlightChanged);
-    }
-
-    private void OnItemHighlightChanged(object sender, EventArgs e)
-    {
-        if (sender is not ComboBoxItem item) return;
-
-        if (item.IsHighlighted)
-        {
-            if (_lastHighlightedItem is not null && _lastHighlightedItem != item)
-            {
-                AnimateScale(_lastHighlightedItem, 1.0);
-            }
-            _lastHighlightedItem = item;
-            AnimateScale(item, ItemHoverScale);
-        }
-        else
-        {
-            AnimateScale(item, 1.0);
-            if (_lastHighlightedItem == item)
-            {
-                _lastHighlightedItem = null;
-            }
-        }
-    }
-
-    private void ComboBoxItem_PreviewMouseMove(object sender, MouseEventArgs e)
-    {
-        if (sender is not ComboBoxItem item) return;
-
-        if (_lastHoveredItem != item)
-        {
-            if (_lastHoveredItem is not null)
-            {
-                AnimateScale(_lastHoveredItem, 1.0);
-            }
-
-            _lastHoveredItem = item;
-            AnimateScale(item, ItemHoverScale);
-        }
-    }
-
-    private void ComboBoxItem_MouseLeave(object sender, MouseEventArgs e)
-    {
-        if (sender is ComboBoxItem item)
-        {
-            AnimateScale(item, 1.0);
-            if (_lastHoveredItem == item)
-            {
-                _lastHoveredItem = null;
-            }
-        }
-    }
 
     private void AnimateScale(object sender, double toScale)
     {

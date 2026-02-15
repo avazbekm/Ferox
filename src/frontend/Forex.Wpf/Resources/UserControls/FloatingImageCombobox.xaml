@@ -71,11 +71,8 @@
 
 			<ComboBox.ItemContainerStyle>
 				<Style TargetType="ComboBoxItem">
-					<Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
-					<EventSetter Event="Loaded" Handler="ComboBoxItem_Loaded"/>
-					<EventSetter Event="PreviewMouseMove" Handler="ComboBoxItem_PreviewMouseMove"/>
-					<EventSetter Event="MouseLeave" Handler="ComboBoxItem_MouseLeave"/>
-				</Style>
+						<Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+					</Style>
 			</ComboBox.ItemContainerStyle>
 
 			<ComboBox.ItemTemplate>
