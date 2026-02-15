@@ -22,8 +22,7 @@ public class DeleteProductTypeCommandHandler(IAppDbContext context)
             .AnyAsync(si => si.ProductTypeId == request.Id, ct);
 
         if (hasSales)
-            throw new ForbiddenException(
-                "Bu turdagi mahsulot savdoda qatnashgan. O'chirib bo'lmaydi!");
+            throw new ForbiddenException("Bu turdagi mahsulot savdoda qatnashgan. O'chirib bo'lmaydi!");
 
         await context.BeginTransactionAsync(ct);
 

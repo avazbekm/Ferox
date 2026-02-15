@@ -12,7 +12,6 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
-
 using System.ComponentModel;
 using System.Windows.Data;
 
@@ -30,9 +29,14 @@ public partial class ProductSettingsViewModel : ViewModelBase
         _ = LoadProductsAsync();
     }
 
-    [ObservableProperty] private ObservableCollection<ProductViewModel> products = [];
-    [ObservableProperty] private ProductViewModel? selectedProduct;
-    [ObservableProperty] private string searchText = string.Empty;
+    [ObservableProperty]
+    private ObservableCollection<ProductViewModel> products = [];
+
+    [ObservableProperty]
+    private ProductViewModel? selectedProduct;
+
+    [ObservableProperty]
+    private string searchText = string.Empty;
 
     private ICollectionView? _productsView;
     public ICollectionView? ProductsView
@@ -40,6 +44,8 @@ public partial class ProductSettingsViewModel : ViewModelBase
         get => _productsView;
         set => SetProperty(ref _productsView, value);
     }
+
+    public bool HasSelectedProduct => SelectedProduct is not null;
 
     partial void OnSelectedProductChanged(ProductViewModel? value)
     {
@@ -50,8 +56,6 @@ public partial class ProductSettingsViewModel : ViewModelBase
     {
         ProductsView?.Refresh();
     }
-
-    public bool HasSelectedProduct => SelectedProduct is not null;
 
     private async Task LoadProductsAsync()
     {
@@ -168,21 +172,20 @@ public partial class ProductSettingsViewModel : ViewModelBase
         if (SelectedProduct is null) return;
 
         var existingNewType = SelectedProduct.ProductTypes
-            .FirstOrDefault(t => t.Type == "Yangi tur" && t.Id == 0);
+            .FirstOrDefault(t => string.IsNullOrWhiteSpace(t.Type));
 
         if (existingNewType is not null)
         {
-            WarningMessage = "Avval mavjud 'Yangi tur'ni to'ldiring!";
+            WarningMessage = "Avval mavjud turni to'ldiring!";
             return;
         }
 
         var newType = new ProductTypeViewModel
         {
-            Type = "Yangi tur",
+            Type = "",
             BundleItemCount = 1,
             UnitPrice = 0,
-            ProductId = SelectedProduct.Id,
-            Product = SelectedProduct
+            ProductId = SelectedProduct.Id
         };
 
         SelectedProduct.ProductTypes.Add(newType);
