@@ -13,6 +13,9 @@ using MapsterMapper;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 
+using System.ComponentModel;
+using System.Windows.Data;
+
 public partial class ProductSettingsViewModel : ViewModelBase
 {
     private readonly ForexClient client;
@@ -31,9 +34,21 @@ public partial class ProductSettingsViewModel : ViewModelBase
     [ObservableProperty] private ProductViewModel? selectedProduct;
     [ObservableProperty] private string searchText = string.Empty;
 
+    private ICollectionView? _productsView;
+    public ICollectionView? ProductsView
+    {
+        get => _productsView;
+        set => SetProperty(ref _productsView, value);
+    }
+
     partial void OnSelectedProductChanged(ProductViewModel? value)
     {
         OnPropertyChanged(nameof(HasSelectedProduct));
+    }
+
+    partial void OnSearchTextChanged(string value)
+    {
+        ProductsView?.Refresh();
     }
 
     public bool HasSelectedProduct => SelectedProduct is not null;
@@ -42,9 +57,28 @@ public partial class ProductSettingsViewModel : ViewModelBase
     {
         var response = await client.Products.GetAllAsync().Handle(l => IsLoading = l);
         if (response.IsSuccess)
+        {
             Products = mapper.Map<ObservableCollection<ProductViewModel>>(response.Data);
+
+            ProductsView = CollectionViewSource.GetDefaultView(Products);
+            ProductsView.Filter = FilterProducts;
+        }
         else
             ErrorMessage = response.Message ?? "Mahsulotlarni yuklashda xatolik!";
+    }
+
+    private bool FilterProducts(object obj)
+    {
+        if (obj is not ProductViewModel product)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(SearchText))
+            return true;
+
+        var search = SearchText.ToLower();
+
+        return product.Code?.ToLower().Contains(search) == true ||
+               product.Name?.ToLower().Contains(search) == true;
     }
 
     [RelayCommand]
@@ -133,9 +167,20 @@ public partial class ProductSettingsViewModel : ViewModelBase
     {
         if (SelectedProduct is null) return;
 
+        var existingNewType = SelectedProduct.ProductTypes
+            .FirstOrDefault(t => t.Type == "Yangi tur" && t.Id == 0);
+
+        if (existingNewType is not null)
+        {
+            WarningMessage = "Avval mavjud 'Yangi tur'ni to'ldiring!";
+            return;
+        }
+
         var newType = new ProductTypeViewModel
         {
             Type = "Yangi tur",
+            BundleItemCount = 1,
+            UnitPrice = 0,
             ProductId = SelectedProduct.Id,
             Product = SelectedProduct
         };
@@ -187,7 +232,7 @@ public partial class ProductSettingsViewModel : ViewModelBase
 
             if (!string.IsNullOrEmpty(uploadedPath))
             {
-                 SelectedProduct.ImagePath = uploadedPath;
+                SelectedProduct.ImagePath = uploadedPath;
                 OnPropertyChanged(nameof(SelectedProduct));
                 SuccessMessage = "Rasm yuklandi! Saqlash tugmasini bosishni unutmang.";
             }

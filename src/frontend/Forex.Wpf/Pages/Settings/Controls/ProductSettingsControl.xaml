@@ -10,6 +10,16 @@
              d:DesignHeight="600" d:DesignWidth="900">
 
 	<UserControl.Resources>
+        <!-- ✅ Oddiy TextBox Style - Border doim ko'rinadi -->
+        <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#CCCCCC" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
         <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -38,6 +48,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
@@ -48,10 +59,18 @@
                         Command="{Binding AddProductCommand}"
                         Style="{StaticResource ActionButtonStyle}"
                         HorizontalAlignment="Stretch"
-                        Margin="0,0,0,12"/>
+                        Margin="0,0,0,8"/>
 
-                <ListBox Grid.Row="2"
-                         ItemsSource="{Binding Products}"
+                <!-- ✅ Qidiruv input -->
+                <TextBox Grid.Row="2"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource InputTextBoxStyle}"
+                         md:HintAssist.Hint="🔍 Qidirish (Kod yoki Nom)"
+                         md:HintAssist.IsFloating="True"
+                         Margin="0,8,0,8"/>
+
+                <ListBox Grid.Row="3"
+                         ItemsSource="{Binding ProductsView}"
                          SelectedItem="{Binding SelectedProduct}"
                          BorderThickness="0"
                          Background="Transparent">
@@ -123,16 +142,18 @@
                         </Grid.RowDefinitions>
 
                         <TextBox Grid.Column="0" Grid.Row="0"
-                                 md:HintAssist.Hint="Mahsulot Kodi"
                                  Text="{Binding SelectedProduct.Code, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 Margin="0,0,0,12"/>
+                                 Style="{StaticResource InputTextBoxStyle}"
+                                 md:HintAssist.Hint="Mahsulot Kodi"
+                                 md:HintAssist.IsFloating="True"
+                                 Margin="0,8,0,12"/>
 
                         <TextBox Grid.Column="2" Grid.Row="0"
-                                 md:HintAssist.Hint="Mahsulot Nomi"
                                  Text="{Binding SelectedProduct.Name, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 Margin="0,0,0,12"/>
+                                 Style="{StaticResource InputTextBoxStyle}"
+                                 md:HintAssist.Hint="Mahsulot Nomi"
+                                 md:HintAssist.IsFloating="True"
+                                 Margin="0,8,0,12"/>
                     </Grid>
 
                     <!-- Mahsulot Turlari -->
