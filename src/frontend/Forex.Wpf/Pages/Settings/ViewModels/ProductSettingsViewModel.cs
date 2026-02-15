@@ -162,7 +162,7 @@ public partial class ProductSettingsViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = response.Message ?? "O'chirishda xatolik! Mahsulot savdoda qatnashgan bo'lishi mumkin.";
+            WarningMessage = response.Message ?? "O'chirishda xatolik! Mahsulot savdoda qatnashgan bo'lishi mumkin.";
         }
     }
 
@@ -214,7 +214,7 @@ public partial class ProductSettingsViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = response.Message ?? "Turni o'chirishda xatolik! U savdoda qatnashgan bo'lishi mumkin.";
+            WarningMessage = response.Message ?? "Turni o'chirishda xatolik! U savdoda qatnashgan bo'lishi mumkin.";
         }
     }
 
@@ -237,7 +237,7 @@ public partial class ProductSettingsViewModel : ViewModelBase
             {
                 SelectedProduct.ImagePath = uploadedPath;
                 OnPropertyChanged(nameof(SelectedProduct));
-                SuccessMessage = "Rasm yuklandi! Saqlash tugmasini bosishni unutmang.";
+                InfoMessage = "Rasm yuklandi! Saqlash tugmasini bosishni unutmang.";
             }
             else
             {
@@ -252,6 +252,6 @@ public partial class ProductSettingsViewModel : ViewModelBase
         if (SelectedProduct is null) return;
 
         SelectedProduct.ImagePath = string.Empty;
-        SuccessMessage = "Rasm o'chirildi! Saqlash tugmasini bosing.";
+        InfoMessage = "Rasm o'chirildi! Saqlash tugmasini bosishni unutmang.";
     }
 }

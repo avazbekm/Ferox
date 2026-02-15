@@ -25,18 +25,60 @@
                 CornerRadius="4">
 
 			<ComboBox x:Name="combo"
-                      VerticalAlignment="Center"
-                      Background="Transparent"
-                      BorderThickness="0"
-                      FontSize="14"
-                      IsEditable="{Binding IsEditable, ElementName=Root}"
-					  TextSearch.TextPath="{Binding PrimaryTextMemberPath, ElementName=Root}"
-                      ItemsSource="{Binding ItemsSource, ElementName=Root}"
-                      SelectedItem="{Binding SelectedItem, ElementName=Root, Mode=TwoWay}"
-                      Text="{Binding Text, ElementName=Root, Mode=TwoWay}"
-                      GotFocus="ComboBox_GotFocus">
+                  VerticalAlignment="Center"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  FontSize="14"
+                  IsEditable="{Binding IsEditable, ElementName=Root}"
+				  TextSearch.TextPath="{Binding PrimaryTextMemberPath, ElementName=Root}"
+                  ItemsSource="{Binding ItemsSource, ElementName=Root}"
+                  SelectedItem="{Binding SelectedItem, ElementName=Root, Mode=TwoWay}"
+                  Text="{Binding Text, ElementName=Root, Mode=TwoWay}"
+                  GotFocus="ComboBox_GotFocus">
 
-				<ComboBox.ItemTemplate>
+			<ComboBox.Resources>
+				<Storyboard x:Key="ScaleUpStoryboard">
+					<DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
+									 Duration="0:0:0.2">
+						<DoubleAnimation.EasingFunction>
+							<QuadraticEase EasingMode="EaseOut"/>
+						</DoubleAnimation.EasingFunction>
+					</DoubleAnimation>
+					<DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY"
+									 Duration="0:0:0.2">
+						<DoubleAnimation.EasingFunction>
+							<QuadraticEase EasingMode="EaseOut"/>
+						</DoubleAnimation.EasingFunction>
+					</DoubleAnimation>
+				</Storyboard>
+				<Storyboard x:Key="ScaleDownStoryboard">
+					<DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
+									 To="1"
+									 Duration="0:0:0.15">
+						<DoubleAnimation.EasingFunction>
+							<QuadraticEase EasingMode="EaseIn"/>
+						</DoubleAnimation.EasingFunction>
+					</DoubleAnimation>
+					<DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY"
+									 To="1"
+									 Duration="0:0:0.15">
+						<DoubleAnimation.EasingFunction>
+							<QuadraticEase EasingMode="EaseIn"/>
+						</DoubleAnimation.EasingFunction>
+					</DoubleAnimation>
+				</Storyboard>
+			</ComboBox.Resources>
+
+			<ComboBox.ItemContainerStyle>
+				<Style TargetType="ComboBoxItem">
+					<Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+					<EventSetter Event="Loaded" Handler="ComboBoxItem_Loaded"/>
+					<EventSetter Event="PreviewMouseMove" Handler="ComboBoxItem_PreviewMouseMove"/>
+					<EventSetter Event="MouseLeave" Handler="ComboBoxItem_MouseLeave"/>
+				</Style>
+			</ComboBox.ItemContainerStyle>
+
+			<ComboBox.ItemTemplate>
 					<DataTemplate>
 						<Grid Margin="2">
 							<Grid.ColumnDefinitions>

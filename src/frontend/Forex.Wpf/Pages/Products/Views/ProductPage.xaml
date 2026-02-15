@@ -79,6 +79,7 @@
                 ShowImage="True"
                 ImageWidth="50"
                 ImageHeight="50"
+                ItemHoverScale="2"
                 Visibility="{Binding IsNewProductMode, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
 
 			<controls:FloatingInput
