@@ -34,48 +34,29 @@
                   ItemsSource="{Binding ItemsSource, ElementName=Root}"
                   SelectedItem="{Binding SelectedItem, ElementName=Root, Mode=TwoWay}"
                   Text="{Binding Text, ElementName=Root, Mode=TwoWay}"
-                  GotFocus="ComboBox_GotFocus">
+                  GotFocus="ComboBox_GotFocus"
+                  Loaded="ComboBox_Loaded">
 
-			<ComboBox.Resources>
-				<Storyboard x:Key="ScaleUpStoryboard">
-					<DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
-									 Duration="0:0:0.2">
-						<DoubleAnimation.EasingFunction>
-							<QuadraticEase EasingMode="EaseOut"/>
-						</DoubleAnimation.EasingFunction>
-					</DoubleAnimation>
-					<DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY"
-									 Duration="0:0:0.2">
-						<DoubleAnimation.EasingFunction>
-							<QuadraticEase EasingMode="EaseOut"/>
-						</DoubleAnimation.EasingFunction>
-					</DoubleAnimation>
-				</Storyboard>
-				<Storyboard x:Key="ScaleDownStoryboard">
-					<DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
-									 To="1"
-									 Duration="0:0:0.15">
-						<DoubleAnimation.EasingFunction>
-							<QuadraticEase EasingMode="EaseIn"/>
-						</DoubleAnimation.EasingFunction>
-					</DoubleAnimation>
-					<DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY"
-									 To="1"
-									 Duration="0:0:0.15">
-						<DoubleAnimation.EasingFunction>
-							<QuadraticEase EasingMode="EaseIn"/>
-						</DoubleAnimation.EasingFunction>
-					</DoubleAnimation>
-				</Storyboard>
-			</ComboBox.Resources>
-
-			<ComboBox.ItemContainerStyle>
-				<Style TargetType="ComboBoxItem">
-						<Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+				<ComboBox.Resources>
+					<Style x:Key="ComboBoxPopupStyle" TargetType="Popup">
+						<Setter Property="AllowsTransparency" Value="True"/>
 					</Style>
-			</ComboBox.ItemContainerStyle>
+				</ComboBox.Resources>
 
-			<ComboBox.ItemTemplate>
+				<ComboBox.ItemContainerStyle>
+<Style TargetType="ComboBoxItem">
+<Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+<Setter Property="Panel.ZIndex" Value="0"/>
+<EventSetter Event="Loaded" Handler="Item_Loaded"/>
+<Style.Triggers>
+<Trigger Property="IsHighlighted" Value="True">
+<Setter Property="Panel.ZIndex" Value="999"/>
+</Trigger>
+</Style.Triggers>
+</Style>
+</ComboBox.ItemContainerStyle>
+
+				<ComboBox.ItemTemplate>
 					<DataTemplate>
 						<Grid Margin="2">
 							<Grid.ColumnDefinitions>

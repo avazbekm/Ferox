@@ -316,8 +316,8 @@
                 PrimaryTextMemberPath="Code"
                 SecondaryTextMemberPath="Name"
                 ShowImage="True"
-                ImageWidth="40"
-                ImageHeight="40" />
+                ImageWidth="50"
+                ImageHeight="50" />
 
             <!--  Razmer  -->
             <controls:FloatingComboBox

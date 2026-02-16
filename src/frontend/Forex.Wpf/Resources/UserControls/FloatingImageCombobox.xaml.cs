@@ -4,6 +4,8 @@ using System.Collections;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -30,7 +32,7 @@ public partial class FloatingImageComboBox : UserControl
     public static readonly DependencyProperty PrimaryTextMemberPathProperty = DependencyProperty.Register(nameof(PrimaryTextMemberPath), typeof(string), typeof(FloatingImageComboBox), new PropertyMetadata("Code"));
     public string PrimaryTextMemberPath { get => (string)GetValue(PrimaryTextMemberPathProperty); set => SetValue(PrimaryTextMemberPathProperty, value); }
 
-    public static readonly DependencyProperty SecondaryTextMemberPathProperty = DependencyProperty.Register(nameof(SecondaryTextMemberPath), typeof(string), typeof(FloatingImageComboBox), new PropertyMetadata("Name"));
+    public static readonly DependencyProperty SecondaryTextMemberPathProperty = DependencyProperty.Register(nameof(SecondaryTextMemberPathProperty), typeof(string), typeof(FloatingImageComboBox), new PropertyMetadata("Name"));
     public string SecondaryTextMemberPath { get => (string)GetValue(SecondaryTextMemberPathProperty); set => SetValue(SecondaryTextMemberPathProperty, value); }
 
     public static readonly DependencyProperty ImageWidthProperty = DependencyProperty.Register(nameof(ImageWidth), typeof(double), typeof(FloatingImageComboBox), new PropertyMetadata(24.0));
@@ -56,24 +58,47 @@ public partial class FloatingImageComboBox : UserControl
 
     private void ComboBox_GotFocus(object sender, RoutedEventArgs e) => combo.IsDropDownOpen = true;
 
-    private void AnimateScale(object sender, double toScale)
+    private void ComboBox_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (combo.Template?.FindName("PART_Popup", combo) is Popup popup)
+        {
+            popup.AllowsTransparency = true;
+            popup.Opened += (s, args) =>
+            {
+                if (popup.Child is FrameworkElement child)
+                    SetClipToBoundsRecursive(child, false);
+            };
+        }
+    }
+
+    private void SetClipToBoundsRecursive(DependencyObject element, bool value)
+    {
+        if (element is FrameworkElement fe)
+            fe.ClipToBounds = value;
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
+            SetClipToBoundsRecursive(VisualTreeHelper.GetChild(element, i), value);
+    }
+
+    private void Item_Loaded(object sender, RoutedEventArgs e)
     {
         if (sender is not ComboBoxItem item) return;
 
-        if (item.RenderTransform is not ScaleTransform)
+        item.RenderTransform = new ScaleTransform(1, 1);
+
+        item.MouseEnter += (s, args) =>
         {
-            item.RenderTransform = new ScaleTransform(1, 1);
-        }
+            if (ItemHoverScale <= 1.0) return;
+            var transform = (ScaleTransform)item.RenderTransform;
+            transform.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(ItemHoverScale, TimeSpan.FromMilliseconds(200)));
+            transform.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(ItemHoverScale, TimeSpan.FromMilliseconds(200)));
+        };
 
-        var transform = (ScaleTransform)item.RenderTransform;
-
-        var duration = toScale == 1.0 ? TimeSpan.FromMilliseconds(150) : TimeSpan.FromMilliseconds(200);
-        var easing = toScale == 1.0 ? new QuadraticEase { EasingMode = EasingMode.EaseIn } : new QuadraticEase { EasingMode = EasingMode.EaseOut };
-
-        var animX = new DoubleAnimation(toScale, duration) { EasingFunction = easing };
-        var animY = new DoubleAnimation(toScale, duration) { EasingFunction = easing };
-
-        transform.BeginAnimation(ScaleTransform.ScaleXProperty, animX);
-        transform.BeginAnimation(ScaleTransform.ScaleYProperty, animY);
+        item.MouseLeave += (s, args) =>
+        {
+            var transform = (ScaleTransform)item.RenderTransform;
+            transform.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(150)));
+            transform.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(150)));
+        };
     }
 }
