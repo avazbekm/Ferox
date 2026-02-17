@@ -1,6 +1,7 @@
 ﻿namespace Forex.Wpf.Resources.UserControls;
 
-using Microsoft.Win32;
+using Forex.Wpf.Services;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -15,23 +16,21 @@ public partial class FloatingFileInput : UserControl
         DependencyProperty.Register(nameof(Label), typeof(string), typeof(FloatingFileInput), new PropertyMetadata(""));
 
     public static readonly DependencyProperty FileNameProperty =
-    DependencyProperty.Register(
-        nameof(FileName),
-        typeof(string),
-        typeof(FloatingFileInput),
-        new FrameworkPropertyMetadata(
-            string.Empty,
-            FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
-            OnFileNameChanged));
+        DependencyProperty.Register(
+            nameof(FileName),
+            typeof(string),
+            typeof(FloatingFileInput),
+            new FrameworkPropertyMetadata(
+                string.Empty,
+                FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                OnFileNameChanged));
 
     private static void OnFileNameChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (FloatingFileInput)d;
-
         if (e.NewValue is null)
             control.input.Text = string.Empty;
     }
-
 
     public string Label
     {
@@ -45,17 +44,42 @@ public partial class FloatingFileInput : UserControl
         set => SetValue(FileNameProperty, value);
     }
 
-    private void BtnBrowse_Click(object sender, RoutedEventArgs e)
+    private async void BtnBrowse_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog
+        var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Rasm tanlang",
-            Filter = "Rasm fayllari (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|Barcha fayllar (*.*)|*.*"
+            Title = "Surat tanlang",
+            Filter = "Rasmlar (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg"
         };
 
-        if (dialog.ShowDialog() == true)
+        if (dialog.ShowDialog() != true) return;
+
+        try
         {
-            FileName = dialog.FileName;
+            button.IsEnabled = false;
+            button.Content = "⏳";
+
+            using var fileStream = File.OpenRead(dialog.FileName);
+            using var compressedStream = await ImageCompressionService.CompressImageAsync(fileStream);
+
+            var tempFileName = $"temp_{Guid.NewGuid():N}.jpg";
+            var tempPath = Path.Combine(Path.GetTempPath(), tempFileName);
+
+            using (var tempFile = File.Create(tempPath))
+            {
+                await compressedStream.CopyToAsync(tempFile);
+            }
+
+            FileName = tempPath;
+        }
+        catch
+        {
+            MessageBox.Show("Rasmni yuklashda xatolik!", "Xatolik", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            button.IsEnabled = true;
+            button.Content = "📁";
         }
     }
 }

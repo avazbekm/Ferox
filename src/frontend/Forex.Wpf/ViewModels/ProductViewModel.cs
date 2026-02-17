@@ -17,6 +17,7 @@ public partial class ProductViewModel : ViewModelBase
     [ObservableProperty] private ProductionOrigin productionOrigin;
     [ObservableProperty] private UnitMeasuerViewModel unitMeasure = default!;
     [ObservableProperty] private string imagePath = string.Empty;
+    [ObservableProperty] private string imagePreviewPath = string.Empty;
 
     [ObservableProperty] private ObservableCollection<ProductTypeViewModel> productTypes = [];
     [ObservableProperty] private ProductTypeViewModel selectedType = new();
@@ -47,8 +48,7 @@ public partial class ProductViewModel : ViewModelBase
             var selectedFilePath = dialog.FileName;
 
             using var fileStream = File.OpenRead(selectedFilePath);
-            using var compressedStream = await Forex.Wpf.Services.ImageCompressionService
-                .CompressImageIfNeededAsync(fileStream, Path.GetFileName(selectedFilePath));
+            using var compressedStream = await Forex.Wpf.Services.ImageCompressionService.CompressImageAsync(fileStream);
 
             var tempFileName = $"temp_{Guid.NewGuid():N}.jpg";
             var tempPath = Path.Combine(Path.GetTempPath(), tempFileName);
@@ -59,6 +59,7 @@ public partial class ProductViewModel : ViewModelBase
             }
 
             ImagePath = tempPath;
+            ImagePreviewPath = tempPath;
         }
         catch
         {

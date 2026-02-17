@@ -8,9 +8,8 @@ using System.Windows.Media.Imaging;
 
 public class UniversalImageResolver : IValueConverter, IMultiValueConverter
 {
-    // ✅ MinIO konfiguratsiyasi
     private const string MinioEndpoint = "http://localhost:9000";
-    private const string MinioBucket = "products";
+    private const string MinioBucket = "forex-storage";
 
     private static readonly Lazy<ImageSource?> _placeholder = new(LoadPlaceholder);
 

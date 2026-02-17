@@ -231,6 +231,9 @@ public partial class ProductSettingsViewModel : ViewModelBase
 
         if (dialog.ShowDialog() == true)
         {
+            SelectedProduct.ImagePath = dialog.FileName;
+            OnPropertyChanged(nameof(SelectedProduct));
+
             var uploadedPath = await client.FileStorage.UploadFileAsync(dialog.FileName);
 
             if (!string.IsNullOrEmpty(uploadedPath))

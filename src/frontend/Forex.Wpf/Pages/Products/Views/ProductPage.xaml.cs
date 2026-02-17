@@ -51,8 +51,6 @@ public partial class ProductPage : Page
             tbxBundleItemCount.input,
             tbxQuantity.input,
             tbxCostPrice.input,
-            fileInput.input,
-            fileInput.button,
             btnAdd,
             btnCancel
         ]);

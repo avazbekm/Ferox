@@ -9,7 +9,6 @@
 *.user
 *.userosscache
 *.sln.docstates
-*.env
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -423,17 +422,22 @@ FodyWeavers.xsd
 /src/frontend/Forex.Wpf/appsettings.Development.json
 /src/backend/Forex.WebApi/.config
 
+# Environment variables
+# Note: .env is tracked for localhost testing convenience
+# For production, edit .env with your values
+# **/.env  # Uncomment this in production fork
+!.env
+!**/.env.example
+
+# Docker volumes and data
+**/docker-data/
+**/servers.json
+
 **/DevKeyService.Secrets.cs
 /src/frontend/Forex.Wpf/appsettings.Production.json
 
 # Docker and MinIO
-**/data/
-**/servers.json
 *.zip
-
-# Environment variables
-**/.env
-!**/.env.example
 
 # Test publish directories
 **/testpublish/
