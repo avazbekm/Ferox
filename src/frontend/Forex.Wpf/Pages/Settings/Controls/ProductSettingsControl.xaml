@@ -167,7 +167,7 @@
 									<DataGridTemplateColumn.CellTemplate>
 										<DataTemplate>
 											<TextBox Text="{Binding BundleItemCount, UpdateSourceTrigger=PropertyChanged}"
-											         IsReadOnly="{Binding CanEditBundleCount, Converter={StaticResource InverseBoolConverter}}"
+											         IsReadOnly="{Binding CanEditBundleCount, Converter={StaticResource InverseBoolToBoolConverter}}"
 											         BorderThickness="0"
 											         Background="Transparent"
 											         VerticalContentAlignment="Center"

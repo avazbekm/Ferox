@@ -1,6 +1,7 @@
-﻿namespace Forex.Wpf.Resources.Converters;
+namespace Forex.Wpf.Resources.Converters;
 
 using System.Globalization;
+using System.Windows;
 using System.Windows.Data;
 
 public class NumberToBoolConverter : IValueConverter
@@ -13,10 +14,8 @@ public class NumberToBoolConverter : IValueConverter
         {
             double number = System.Convert.ToDouble(value);
 
-            if (parameter?.ToString()!.ToLower() == "inverse")
-            {
+            if (parameter?.ToString()?.ToLower() == "inverse")
                 return number <= 0;
-            }
 
             return number > 0;
         }
@@ -27,7 +26,5 @@ public class NumberToBoolConverter : IValueConverter
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
+        => DependencyProperty.UnsetValue;
 }
