@@ -6,14 +6,9 @@ using Minio;
 /// <summary>
 /// Factory for creating MinIO clients with proper endpoint configuration
 /// </summary>
-public class ForexMinioClientFactory
+public class ForexMinioClientFactory(IOptions<MinioStorageOptions> options)
 {
-    private readonly MinioStorageOptions _options;
-
-    public ForexMinioClientFactory(IOptions<MinioStorageOptions> options)
-    {
-        _options = options.Value;
-    }
+    private readonly MinioStorageOptions _options = options.Value;
 
     /// <summary>
     /// Creates MinIO client for internal operations (bucket management, file operations)
@@ -59,25 +54,16 @@ public class ForexMinioClientFactory
 
     public string DeterminePublicEndpoint(string? requestHost)
     {
-        // Priority 1: Explicit configuration
         if (!string.IsNullOrWhiteSpace(_options.PublicEndpoint))
-        {
-            Console.WriteLine($"[MinIO] Using PublicEndpoint from config: {_options.PublicEndpoint}");
             return _options.PublicEndpoint;
-        }
 
-        // Priority 2: Auto-detect from HTTP request host
         if (!string.IsNullOrWhiteSpace(requestHost))
         {
             var hostParts = requestHost.Split(':');
             var hostname = hostParts[0];
-            var result = $"{hostname}:{_options.PublicPort}";
-            Console.WriteLine($"[MinIO] Auto-detected from request: {result}");
-            return result;
+            return $"{hostname}:{_options.PublicPort}";
         }
 
-        // Priority 3: Fallback to internal endpoint
-        Console.WriteLine($"[MinIO] WARNING: Using internal endpoint as fallback: {_options.Endpoint}");
         return _options.Endpoint;
     }
 }

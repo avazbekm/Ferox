@@ -24,11 +24,6 @@ public sealed class MinioFileStorageService : IFileStorageService
         _options = options.Value;
         _clientFactory = clientFactory;
         _logger = logger;
-
-        // Debug logging
-        _logger.LogInformation("[MinioFileStorageService] Endpoint: {Endpoint}", _options.Endpoint);
-        _logger.LogInformation("[MinioFileStorageService] PublicEndpoint: {PublicEndpoint}", _options.PublicEndpoint ?? "NULL");
-        _logger.LogInformation("[MinioFileStorageService] PublicPort: {PublicPort}", _options.PublicPort);
     }
 
     public async Task<PresignedUploadResult> GeneratePresignedUploadUrlAsync(
@@ -215,15 +210,10 @@ public sealed class MinioFileStorageService : IFileStorageService
 
         if (objectKey.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return objectKey;
 
-        // Use PublicEndpoint from options if configured, otherwise use DeterminePublicEndpoint
         var endpoint = !string.IsNullOrWhiteSpace(_options.PublicEndpoint)
             ? _options.PublicEndpoint
             : _clientFactory.DeterminePublicEndpoint(null);
 
-        _logger.LogInformation("[GetFullUrl] Using endpoint: {Endpoint} (PublicEndpoint from config: {PublicEndpoint})",
-            endpoint, _options.PublicEndpoint ?? "NULL");
-
-        // Ensure protocol is included
         if (!endpoint.StartsWith("http", StringComparison.OrdinalIgnoreCase))
         {
             string protocol = _options.UseSsl ? "https://" : "http://";

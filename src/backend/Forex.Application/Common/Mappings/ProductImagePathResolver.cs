@@ -8,9 +8,5 @@ public class ProductImagePathResolver(IFileStorageService fileStorage)
     : IValueResolver<Product, object, string?>
 {
     public string? Resolve(Product source, object destination, string? destMember, ResolutionContext context)
-    {
-        var url = fileStorage.GetFullUrl(source.ImagePath);
-        Console.WriteLine($"[ProductImagePathResolver] Input: {source.ImagePath} → Output: {url}");
-        return url;
-    }
+        => fileStorage.GetFullUrl(source.ImagePath);
 }

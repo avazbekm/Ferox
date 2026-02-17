@@ -425,4 +425,16 @@ FodyWeavers.xsd
 
 **/DevKeyService.Secrets.cs
 /src/frontend/Forex.Wpf/appsettings.Production.json
-/src/backend/Forex.WebApi/appsettings.Production.json
+
+# Docker and MinIO
+**/data/
+**/servers.json
+*.zip
+
+# Test publish directories
+**/testpublish/
+**/publish/
+
+# Build logs
+*.log
+msbuild.log
