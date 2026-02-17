@@ -163,7 +163,18 @@
 						<DataGrid ItemsSource="{Binding SelectedProduct.ProductTypes}" VerticalContentAlignment="Center" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="1" BorderBrush="#DDDDDD" MaxHeight="250" Margin="0 0 0 20">
 							<DataGrid.Columns>
 								<DataGridTextColumn Header="Tur (Razmer)" Binding="{Binding Type, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
-								<DataGridTextColumn Header="Dona/Bog'" IsReadOnly="True" Binding="{Binding BundleItemCount, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+								<DataGridTemplateColumn Header="Dona/Bog'" Width="*">
+									<DataGridTemplateColumn.CellTemplate>
+										<DataTemplate>
+											<TextBox Text="{Binding BundleItemCount, UpdateSourceTrigger=PropertyChanged}"
+											         IsReadOnly="{Binding CanEditBundleCount, Converter={StaticResource InverseBoolConverter}}"
+											         BorderThickness="0"
+											         Background="Transparent"
+											         VerticalContentAlignment="Center"
+											         Padding="12,0"/>
+										</DataTemplate>
+									</DataGridTemplateColumn.CellTemplate>
+								</DataGridTemplateColumn>
 								<DataGridTextColumn Header="Narxi" Binding="{Binding UnitPrice, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
 								<DataGridTemplateColumn Width="65">
 									<DataGridTemplateColumn.CellTemplate>

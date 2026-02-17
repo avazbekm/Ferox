@@ -119,7 +119,12 @@ public partial class ProductSettingsViewModel : ViewModelBase
         {
             var response = await client.Products.Update(request).Handle(l => IsLoading = l);
             if (response.IsSuccess)
+            {
+                foreach (var type in SelectedProduct.ProductTypes)
+                    type.IsNew = false;
+
                 SuccessMessage = "Mahsulot muvaffaqiyatli yangilandi!";
+            }
             else
                 ErrorMessage = response.Message ?? "Yangilashda xatolik!";
         }
@@ -129,6 +134,10 @@ public partial class ProductSettingsViewModel : ViewModelBase
             if (response.IsSuccess)
             {
                 SelectedProduct.Id = response.Data ?? 0;
+
+                foreach (var type in SelectedProduct.ProductTypes)
+                    type.IsNew = false;
+
                 SuccessMessage = "Mahsulot muvaffaqiyatli saqlandi!";
             }
             else
@@ -185,7 +194,8 @@ public partial class ProductSettingsViewModel : ViewModelBase
             Type = "",
             BundleItemCount = 1,
             UnitPrice = 0,
-            ProductId = SelectedProduct.Id
+            ProductId = SelectedProduct.Id,
+            IsNew = true
         };
 
         SelectedProduct.ProductTypes.Add(newType);

@@ -15,6 +15,9 @@ public partial class ProductTypeViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<ProductTypeItemViewModel> productTypeItems = [];
     [ObservableProperty] private ProductResidueResponse productResidue = default!;
     [ObservableProperty] private ICollection<SemiProductEntryResponse> productEntries = default!;
+    [ObservableProperty] private bool isNew;
+
+    public bool CanEditBundleCount => IsNew;
 
     // for UI only
     [ObservableProperty] private int availableCount;
