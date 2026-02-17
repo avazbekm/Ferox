@@ -6,7 +6,7 @@
     xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
     Background="White">
 
-    <Grid Margin="15">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="90" />
             <RowDefinition Height="*" />
@@ -191,10 +191,11 @@
         <!--  DATAGRID — MIJOZ USTUNI YO‘Q!  -->
         <DataGrid
             Grid.Row="1"
-            Margin="0,15,0,0"
             AlternatingRowBackground="#F8F9FA"
             AutoGenerateColumns="False"
             FontSize="14"
+            BorderBrush="LightGray"
+            BorderThickness="2"
             VirtualizingStackPanel.VirtualizationMode="Standard"
           EnableRowVirtualization="True"
             GridLinesVisibility="Horizontal"

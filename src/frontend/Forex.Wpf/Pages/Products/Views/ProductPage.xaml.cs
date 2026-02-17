@@ -42,7 +42,7 @@ public partial class ProductPage : Page
     {
         FocusNavigator.RegisterElements([
             date.input,
-            //productCombo.input,
+            productCombo.combo,
             tbxCode.input,
             tbxName.input,
             cbxProductionOrigin.combo,
@@ -54,7 +54,8 @@ public partial class ProductPage : Page
             btnAdd,
             btnCancel
         ]);
-        //FocusNavigator.SetFocusRedirect(btnAdd, productCombo.ComboBoxControl);
+
+        FocusNavigator.SetFocusRedirect(btnAdd, productCombo.combo);
     }
 
     private void RegisterGlobalShortcuts()
@@ -94,9 +95,9 @@ public partial class ProductPage : Page
 
     private void OnFocusRequestReceived(string controlName)
     {
-        //if (controlName == "ProductCode")
-        //    FocusNavigator.FocusElement(productCombo.ComboBoxControl);
-        //else if (controlName == "ProductType")
-        //    FocusNavigator.FocusElement(cbxProductType.combo);
+        if (controlName == "ProductCode")
+            FocusNavigator.FocusElement(productCombo.combo);
+        else if (controlName == "ProductType")
+            FocusNavigator.FocusElement(cbxProductType.combo);
     }
 }

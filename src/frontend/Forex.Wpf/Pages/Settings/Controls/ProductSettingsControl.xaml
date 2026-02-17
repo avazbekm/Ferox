@@ -158,7 +158,7 @@
 						</Grid>
 
 						<TextBlock Text="Mahsulot Turlari (Razmerlar)" Style="{StaticResource SectionHeaderStyle}"/>
-						<Button Content="➕ Yangi Tur Qo'shish" Command="{Binding AddProductTypeCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" md:ButtonAssist.CornerRadius="4" HorizontalAlignment="Left" Height="36" Padding="16 0" Margin="0 0 0 12"/>
+						<Button Content="➕ Yangi Tur (Razmer) qo'shish" Command="{Binding AddProductTypeCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" md:ButtonAssist.CornerRadius="4" HorizontalAlignment="Left" Height="36" Padding="16 0" Margin="0 0 0 12"/>
 
 						<DataGrid ItemsSource="{Binding SelectedProduct.ProductTypes}" VerticalContentAlignment="Center" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="1" BorderBrush="#DDDDDD" MaxHeight="250" Margin="0 0 0 20">
 							<DataGrid.Columns>

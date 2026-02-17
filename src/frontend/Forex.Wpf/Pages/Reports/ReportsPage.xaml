@@ -5,10 +5,9 @@
     xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:views="clr-namespace:Forex.Wpf.Pages.Reports.ViewModels"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    Title="Hisobotlar"
-    Background="#F8F9FA">
+    Title="Hisobotlar">
 
-    <Grid Margin="20">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -18,7 +17,7 @@
         <Button
             x:Name="btnBack"
             Grid.Row="0"
-            Margin="0,5"
+            Margin="0 0 0 10"
             HorizontalAlignment="Right"
             md:ButtonAssist.CornerRadius="4"
             Background="{DynamicResource OtherBackground}"

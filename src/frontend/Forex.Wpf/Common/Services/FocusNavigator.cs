@@ -257,7 +257,7 @@ public static class FocusNavigator
             nextElement = element switch
             {
                 TextBox tb => HandleTextBoxNavigation(e, tb, currentIdx, shift, context.FocusOrder),
-                ComboBox => HandleComboBoxNavigation(e, currentIdx, shift, context.FocusOrder),
+                ComboBox cb => HandleComboBoxNavigation(e, currentIdx, shift, context.FocusOrder, cb),
                 _ => HandleGeneralNavigation(e, currentIdx, shift, context.FocusOrder)
             };
         }
@@ -288,11 +288,11 @@ public static class FocusNavigator
         };
     }
 
-    private static UIElement? HandleComboBoxNavigation(KeyEventArgs e, int currentIdx, bool shift, List<UIElement> focusOrder)
+    private static UIElement? HandleComboBoxNavigation(KeyEventArgs e, int currentIdx, bool shift, List<UIElement> focusOrder, ComboBox comboBox)
     {
         return e.Key switch
         {
-            Key.Down or Key.Up => null,
+            Key.Down or Key.Up when comboBox.IsDropDownOpen => null,
             Key.Right => GetNextFocusableElement(focusOrder, currentIdx, !shift),
             Key.Left => GetNextFocusableElement(focusOrder, currentIdx, shift),
             _ => null
@@ -332,11 +332,24 @@ public static class FocusNavigator
         if (element.Visibility != Visibility.Visible || !element.IsEnabled)
             return false;
 
+        // Ota elementlarning visibility'ini ham tekshiramiz
+        DependencyObject parent = VisualTreeHelper.GetParent(element);
+        while (parent != null)
+        {
+            if (parent is UIElement parentElement)
+            {
+                if (parentElement.Visibility != Visibility.Visible || !parentElement.IsEnabled)
+                    return false;
+            }
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+
         return element switch
         {
             TextBox tb => tb.IsTabStop,
             ComboBox => true,
             Button btn => btn.IsTabStop,
+            UserControl uc when uc.GetType().Name.Contains("FloatingImageComboBox") => true,
             _ => true
         };
     }
@@ -362,8 +375,34 @@ public static class FocusNavigator
                         innerTextBox.SelectAll();
                     }
                     break;
+
+                case UserControl uc when uc.GetType().Name.Contains("FloatingImageComboBox"):
+                    if (FindVisualChild<ComboBox>(uc) is ComboBox combo)
+                    {
+                        combo.Focus();
+                        combo.IsDropDownOpen = false;
+                    }
+                    break;
             }
         }), DispatcherPriority.Input);
+    }
+
+    private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+        if (parent == null) return null;
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T result)
+                return result;
+
+            var childOfChild = FindVisualChild<T>(child);
+            if (childOfChild != null)
+                return childOfChild;
+        }
+
+        return null;
     }
 
     private static void CleanupContext(FocusContext context)
