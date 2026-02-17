@@ -3,11 +3,8 @@
 using Forex.ClientService.Configuration;
 using Forex.ClientService.Interfaces;
 using Forex.ClientService.Services;
-using Forex.ClientService.Services.FileStorage.Minio;
-using Forex.ClientService.Services.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Minio;
 using Refit;
 
 public static class DependencyInjection
@@ -17,16 +14,6 @@ public static class DependencyInjection
         services.AddHttpClient();
         services.AddSingleton<AuthStore>();
 
-        var minioOptions = config.GetSection("Minio").Get<MinioOptions>()!;
-        services.AddSingleton(minioOptions);
-
-        var minioClient = new MinioClient()
-            .WithEndpoint(minioOptions.Endpoint)
-            .WithCredentials(minioOptions.AccessKey, minioOptions.SecretKey)
-            .Build();
-
-        services.AddSingleton(minioClient);
-        services.AddSingleton<MinioFileStorageService>();
         services.AddSingleton<IFileStorageClient, FileStorageClient>();
 
         services.AddTransient<AuthHeaderHandler>();

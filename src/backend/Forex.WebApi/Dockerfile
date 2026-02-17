@@ -25,6 +25,7 @@ COPY ["src/backend/Forex.Domain/Forex.Domain.csproj", "src/backend/Forex.Domain/
 COPY ["src/backend/Forex.Infrastructure/Forex.Infrastructure.csproj", "src/backend/Forex.Infrastructure/"]
 
 RUN dotnet restore "src/backend/Forex.WebApi/Forex.WebApi.csproj"
+# Cache bust: 2026-02-17-16:00-final-fix
 COPY . .
 WORKDIR "/src/src/backend/Forex.WebApi"
 RUN dotnet build "Forex.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
@@ -32,6 +33,7 @@ RUN dotnet build "Forex.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
 # 3. Publish stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+WORKDIR "/src/src/backend/Forex.WebApi"
 RUN dotnet publish "Forex.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # 4. Final runtime stage
@@ -41,5 +43,8 @@ WORKDIR /app
 # ✅ Skriptni ildiz katalogga nusxalaymiz (/wait-for-it.sh)
 COPY --from=build /wait-for-it.sh /wait-for-it.sh
 COPY --from=publish /app/publish .
+
+# ✅ Copy appsettings.Production.json from source
+COPY --from=build /src/src/backend/Forex.WebApi/appsettings.Production.json ./appsettings.Production.json
 
 ENTRYPOINT ["dotnet", "Forex.WebApi.dll"]

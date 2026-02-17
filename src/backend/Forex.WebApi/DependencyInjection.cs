@@ -34,8 +34,10 @@ public static class DependencyInjection
     {
         app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-        app.UseHttpsRedirection();
-        app.UseCors("DefaultPolicy");
+        if (!app.Environment.IsProduction())
+            // app.UseHttpsRedirection();
+
+            app.UseCors("DefaultPolicy");
 
         app.UseAuthentication();
         app.UseAuthorization();

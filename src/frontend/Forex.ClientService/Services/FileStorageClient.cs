@@ -35,7 +35,7 @@ public class FileStorageClient(IApiProductEntries productEntriesApi, IHttpClient
                 FileName = fileName
             });
 
-            if (response.IsSuccess && response.Data != null)
+            if (response.IsSuccess)
             {
                 using var content = new StreamContent(stream);
                 content.Headers.ContentType = new MediaTypeHeaderValue(contentType);

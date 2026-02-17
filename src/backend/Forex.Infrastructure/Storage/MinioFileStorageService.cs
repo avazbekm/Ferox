@@ -1,20 +1,42 @@
 namespace Forex.Infrastructure.Storage;
 
 using Forex.Application.Common.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
 
-public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioStorageOptions> options) : IFileStorageService
+public sealed class MinioFileStorageService : IFileStorageService
 {
     private const int DefaultExpirySeconds = 3600;
-    private readonly MinioStorageOptions _options = options.Value;
+    private readonly MinioStorageOptions _options;
+    private readonly IMinioClient _internalClient;
+    private readonly ForexMinioClientFactory _clientFactory;
+    private readonly ILogger<MinioFileStorageService> _logger;
+
+    public MinioFileStorageService(
+        IMinioClient internalClient,
+        IOptions<MinioStorageOptions> options,
+        ForexMinioClientFactory clientFactory,
+        ILogger<MinioFileStorageService> logger)
+    {
+        _internalClient = internalClient;
+        _options = options.Value;
+        _clientFactory = clientFactory;
+        _logger = logger;
+
+        // Debug logging
+        _logger.LogInformation("[MinioFileStorageService] Endpoint: {Endpoint}", _options.Endpoint);
+        _logger.LogInformation("[MinioFileStorageService] PublicEndpoint: {PublicEndpoint}", _options.PublicEndpoint ?? "NULL");
+        _logger.LogInformation("[MinioFileStorageService] PublicPort: {PublicPort}", _options.PublicPort);
+    }
 
     public async Task<PresignedUploadResult> GeneratePresignedUploadUrlAsync(
         string fileName,
         string contentType,
         string? folder = null,
         TimeSpan? expiry = null,
+        string? publicEndpointOverride = null,
         CancellationToken cancellationToken = default)
     {
         await EnsureBucketExistsAsync(cancellationToken);
@@ -22,7 +44,10 @@ public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioS
         var objectKey = GenerateObjectKey(fileName, folder);
         var expirySeconds = expiry?.TotalSeconds ?? DefaultExpirySeconds;
 
-        var uploadUrl = await client.PresignedPutObjectAsync(
+        // Create client with public endpoint for correct signature
+        var publicClient = _clientFactory.CreatePublicClient(publicEndpointOverride);
+
+        var uploadUrl = await publicClient.PresignedPutObjectAsync(
             new PresignedPutObjectArgs()
                 .WithBucket(_options.BucketName)
                 .WithObject(objectKey)
@@ -42,7 +67,7 @@ public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioS
     {
         try
         {
-            await client.StatObjectAsync(
+            await _internalClient.StatObjectAsync(
                 new StatObjectArgs()
                     .WithBucket(_options.BucketName)
                     .WithObject(objectKey),
@@ -60,7 +85,7 @@ public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioS
         string objectKey,
         CancellationToken cancellationToken = default)
     {
-        await client.RemoveObjectAsync(
+        await _internalClient.RemoveObjectAsync(
             new RemoveObjectArgs()
                 .WithBucket(_options.BucketName)
                 .WithObject(objectKey),
@@ -79,7 +104,7 @@ public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioS
             if (sourceKey == destinationKey)
                 return sourceKey;
 
-            await client.CopyObjectAsync(
+            await _internalClient.CopyObjectAsync(
                 new CopyObjectArgs()
                     .WithBucket(_options.BucketName)
                     .WithObject(destinationKey)
@@ -107,7 +132,7 @@ public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioS
 
         var fullPrefix = $"{_options.Prefix}/{prefix}";
 
-        await foreach (var item in client.ListObjectsEnumAsync(
+        await foreach (var item in _internalClient.ListObjectsEnumAsync(
             new ListObjectsArgs()
                 .WithBucket(_options.BucketName)
                 .WithPrefix(fullPrefix)
@@ -127,14 +152,14 @@ public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioS
 
     private async Task EnsureBucketExistsAsync(CancellationToken cancellationToken)
     {
-        var exists = await client.BucketExistsAsync(
+        var exists = await _internalClient.BucketExistsAsync(
             new BucketExistsArgs()
                 .WithBucket(_options.BucketName),
             cancellationToken);
 
         if (!exists)
         {
-            await client.MakeBucketAsync(
+            await _internalClient.MakeBucketAsync(
                 new MakeBucketArgs()
                     .WithBucket(_options.BucketName),
                 cancellationToken);
@@ -162,7 +187,7 @@ public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioS
         }
         """;
 
-        await client.SetPolicyAsync(
+        await _internalClient.SetPolicyAsync(
             new SetPolicyArgs()
                 .WithBucket(_options.BucketName)
                 .WithPolicy(policy),
@@ -190,13 +215,21 @@ public sealed class MinioFileStorageService(IMinioClient client, IOptions<MinioS
 
         if (objectKey.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return objectKey;
 
-        var endpoint = _options.Endpoint.TrimEnd('/');
+        // Use PublicEndpoint from options if configured, otherwise use DeterminePublicEndpoint
+        var endpoint = !string.IsNullOrWhiteSpace(_options.PublicEndpoint)
+            ? _options.PublicEndpoint
+            : _clientFactory.DeterminePublicEndpoint(null);
 
-        string protocol = _options.UseSsl ? "https://" : "http://";
+        _logger.LogInformation("[GetFullUrl] Using endpoint: {Endpoint} (PublicEndpoint from config: {PublicEndpoint})",
+            endpoint, _options.PublicEndpoint ?? "NULL");
 
+        // Ensure protocol is included
         if (!endpoint.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        {
+            string protocol = _options.UseSsl ? "https://" : "http://";
             endpoint = $"{protocol}{endpoint}";
+        }
 
-        return $"{endpoint}/{_options.BucketName}/{objectKey.TrimStart('/')}";
+        return $"{endpoint.TrimEnd('/')}/{_options.BucketName}/{objectKey.TrimStart('/')}";
     }
 }

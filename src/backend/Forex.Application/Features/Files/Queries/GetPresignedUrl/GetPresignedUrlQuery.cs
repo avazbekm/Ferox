@@ -3,7 +3,7 @@ namespace Forex.Application.Features.Files.Queries.GetPresignedUrl;
 using Forex.Application.Common.Interfaces;
 using MediatR;
 
-public record GetPresignedUrlQuery(string FileName, string Folder) : IRequest<PresignedUrlResponse>;
+public record GetPresignedUrlQuery(string FileName, string Folder, string? RequestHost = null) : IRequest<PresignedUrlResponse>;
 
 public record PresignedUrlResponse(string Url, string Key, DateTime ExpiresAt);
 
@@ -17,6 +17,7 @@ public class GetPresignedUrlHandler(IFileStorageService fileStorage) : IRequestH
             request.FileName,
             contentType,
             $"temp/{request.Folder}",
+            publicEndpointOverride: request.RequestHost,
             cancellationToken: cancellationToken);
 
         return new PresignedUrlResponse(result.UploadUrl, result.ObjectKey, result.ExpiresAt);

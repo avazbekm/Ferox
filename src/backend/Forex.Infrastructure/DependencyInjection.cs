@@ -11,7 +11,6 @@ using Forex.Infrastructure.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Minio;
 
 public static class DependencyInjection
@@ -52,21 +51,14 @@ public static class DependencyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddSingleton(sp =>
+        // Register factory for creating MinIO clients
+        services.AddSingleton<ForexMinioClientFactory>();
+
+        // Register internal client for bucket operations
+        services.AddSingleton<IMinioClient>(sp =>
         {
-            var options = sp.GetRequiredService<IOptions<MinioStorageOptions>>().Value;
-
-            var uri = new Uri(options.Endpoint.StartsWith("http") ? options.Endpoint : $"http://{options.Endpoint}");
-            var finalEndpoint = uri.Authority;
-
-            var client = new MinioClient()
-                .WithEndpoint(finalEndpoint)
-                .WithCredentials(options.AccessKey, options.SecretKey);
-
-            if (options.UseSsl || uri.Scheme == Uri.UriSchemeHttps)
-                client.WithSSL();
-
-            return client.Build();
+            var factory = sp.GetRequiredService<ForexMinioClientFactory>();
+            return factory.CreateInternalClient();
         });
 
         services.AddScoped<IFileStorageService, MinioFileStorageService>();

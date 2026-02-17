@@ -27,7 +27,17 @@ public class ProductEntriesController : BaseController
 
     [HttpPost("image/upload-url")]
     public async Task<IActionResult> GenerateImageUploadUrl(GenerateUploadUrlRequest request)
-        => Ok(new Response { Data = await Mediator.Send(new GetPresignedUrlQuery(request.FileName, "products"), Ct) });
+    {
+        // Auto-detect MinIO public endpoint from request host
+        var requestHost = $"{Request.Host}";
+
+        return Ok(new Response
+        {
+            Data = await Mediator.Send(
+                new GetPresignedUrlQuery(request.FileName, "products", requestHost),
+                Ct)
+        });
+    }
 }
 
 public sealed record GenerateUploadUrlRequest

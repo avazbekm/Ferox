@@ -7,6 +7,7 @@ public interface IFileStorageService
         string contentType,
         string? folder = null,
         TimeSpan? expiry = null,
+        string? publicEndpointOverride = null,
         CancellationToken cancellationToken = default);
 
     Task<bool> FileExistsAsync(
