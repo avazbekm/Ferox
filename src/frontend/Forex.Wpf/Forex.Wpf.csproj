@@ -8,6 +8,9 @@
     <UseWPF>true</UseWPF>
     <StartupObject>Forex.Wpf.App</StartupObject>
     <ApplicationIcon>forex.ico</ApplicationIcon>
+    
+    <!-- Publish settings -->
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,11 +21,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- appsettings.json - faqat development va GitHub uchun -->
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </Content>
+    
     <Content Include="forex.ico" />
   </ItemGroup>
 
@@ -66,9 +71,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- appsettings.Development.json - faqat local development uchun -->
     <None Update="appsettings.Development.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
+    
+    <!-- appsettings.Production.json - faqat publish uchun -->
+    <None Update="appsettings.Production.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
+    
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
