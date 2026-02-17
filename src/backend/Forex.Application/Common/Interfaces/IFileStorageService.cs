@@ -36,4 +36,5 @@ public sealed record PresignedUploadResult
     public required string UploadUrl { get; init; }
     public required string ObjectKey { get; init; }
     public required DateTime ExpiresAt { get; init; }
+    public required long MaxFileSizeBytes { get; init; }
 }

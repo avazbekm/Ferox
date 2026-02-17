@@ -1,6 +1,7 @@
 namespace Forex.Infrastructure.Storage;
 
 using Forex.Application.Common.Interfaces;
+using Forex.Application.Common.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Minio;
@@ -10,6 +11,7 @@ public sealed class MinioFileStorageService : IFileStorageService
 {
     private const int DefaultExpirySeconds = 3600;
     private readonly MinioStorageOptions _options;
+    private readonly FileUploadOptions _uploadOptions;
     private readonly IMinioClient _internalClient;
     private readonly ForexMinioClientFactory _clientFactory;
     private readonly ILogger<MinioFileStorageService> _logger;
@@ -17,11 +19,13 @@ public sealed class MinioFileStorageService : IFileStorageService
     public MinioFileStorageService(
         IMinioClient internalClient,
         IOptions<MinioStorageOptions> options,
+        IOptions<FileUploadOptions> uploadOptions,
         ForexMinioClientFactory clientFactory,
         ILogger<MinioFileStorageService> logger)
     {
         _internalClient = internalClient;
         _options = options.Value;
+        _uploadOptions = uploadOptions.Value;
         _clientFactory = clientFactory;
         _logger = logger;
     }
@@ -39,20 +43,21 @@ public sealed class MinioFileStorageService : IFileStorageService
         var objectKey = GenerateObjectKey(fileName, folder);
         var expirySeconds = expiry?.TotalSeconds ?? DefaultExpirySeconds;
 
-        // Create client with public endpoint for correct signature
         var publicClient = _clientFactory.CreatePublicClient(publicEndpointOverride);
 
-        var uploadUrl = await publicClient.PresignedPutObjectAsync(
-            new PresignedPutObjectArgs()
-                .WithBucket(_options.BucketName)
-                .WithObject(objectKey)
-                .WithExpiry((int)expirySeconds));
+        var presignedPutArgs = new PresignedPutObjectArgs()
+            .WithBucket(_options.BucketName)
+            .WithObject(objectKey)
+            .WithExpiry((int)expirySeconds);
+
+        var uploadUrl = await publicClient.PresignedPutObjectAsync(presignedPutArgs);
 
         return new PresignedUploadResult
         {
             UploadUrl = uploadUrl,
             ObjectKey = objectKey,
-            ExpiresAt = DateTime.UtcNow.AddSeconds(expirySeconds)
+            ExpiresAt = DateTime.UtcNow.AddSeconds(expirySeconds),
+            MaxFileSizeBytes = _uploadOptions.MaxFileSizeBytes
         };
     }
 

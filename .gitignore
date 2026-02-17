@@ -431,6 +431,10 @@ FodyWeavers.xsd
 **/servers.json
 *.zip
 
+# Environment variables
+**/.env
+!**/.env.example
+
 # Test publish directories
 **/testpublish/
 **/publish/

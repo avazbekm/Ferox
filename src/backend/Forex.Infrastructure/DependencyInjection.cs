@@ -51,10 +51,13 @@ public static class DependencyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        // Register factory for creating MinIO clients
+        services.AddOptions<Forex.Application.Common.Options.FileUploadOptions>()
+            .Bind(configuration.GetSection("FileUpload"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         services.AddSingleton<ForexMinioClientFactory>();
 
-        // Register internal client for bucket operations
         services.AddSingleton<IMinioClient>(sp =>
         {
             var factory = sp.GetRequiredService<ForexMinioClientFactory>();

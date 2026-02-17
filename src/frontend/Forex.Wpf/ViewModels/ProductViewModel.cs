@@ -6,6 +6,7 @@ using Forex.ClientService.Enums;
 using Forex.Wpf.Pages.Common;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
+using System.IO;
 
 public partial class ProductViewModel : ViewModelBase
 {
@@ -30,17 +31,42 @@ public partial class ProductViewModel : ViewModelBase
     #region Commands
 
     [RelayCommand]
-    private void SelectImage()
+    private async Task SelectImageAsync()
     {
         var dialog = new OpenFileDialog
         {
-            Filter = "Rasmlar (*.png;*.jpg)|*.png;*.jpg",
+            Filter = "Rasmlar (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg",
             Title = "Mahsulot rasmi tanlash"
         };
 
-        if (dialog.ShowDialog() == true)
+        if (dialog.ShowDialog() != true) return;
+
+        try
         {
-            ImagePath = dialog.FileName;
+            IsLoading = true;
+            var selectedFilePath = dialog.FileName;
+
+            using var fileStream = File.OpenRead(selectedFilePath);
+            using var compressedStream = await Forex.Wpf.Services.ImageCompressionService
+                .CompressImageIfNeededAsync(fileStream, Path.GetFileName(selectedFilePath));
+
+            var tempFileName = $"temp_{Guid.NewGuid():N}.jpg";
+            var tempPath = Path.Combine(Path.GetTempPath(), tempFileName);
+
+            using (var tempFile = File.Create(tempPath))
+            {
+                await compressedStream.CopyToAsync(tempFile);
+            }
+
+            ImagePath = tempPath;
+        }
+        catch
+        {
+            ErrorMessage = "Rasmni yuklashda xatolik!";
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 
