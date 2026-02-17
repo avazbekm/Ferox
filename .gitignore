@@ -424,3 +424,5 @@ FodyWeavers.xsd
 /src/backend/Forex.WebApi/.config
 
 **/DevKeyService.Secrets.cs
+/src/frontend/Forex.Wpf/appsettings.Production.json
+/src/backend/Forex.WebApi/appsettings.Production.json
