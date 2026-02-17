@@ -92,7 +92,7 @@
                                         CornerRadius="4"
                                         Margin="0 0 12 0">
 									<Border.Background>
-										<ImageBrush ImageSource="{Binding ImagePath, Converter={StaticResource UniversalImageResolver}}"
+										<ImageBrush ImageSource="{Binding DisplayImagePath, Converter={StaticResource UniversalImageResolver}}"
                                            Stretch="UniformToFill"/>
 									</Border.Background>
                                 </Border>
@@ -131,7 +131,7 @@
 						<StackPanel Orientation="Horizontal" Margin="0 0 0 20">
 							<Border Width="140" Height="140" CornerRadius="8" Margin="0 0 16 0">
 								<Border.Background>
-									<ImageBrush ImageSource="{Binding SelectedProduct.ImagePath, Converter={StaticResource UniversalImageResolver}}" Stretch="UniformToFill"/>
+									<ImageBrush ImageSource="{Binding SelectedProduct.DisplayImagePath, Converter={StaticResource UniversalImageResolver}}" Stretch="UniformToFill"/>
 								</Border.Background>
 							</Border>
 							<StackPanel VerticalAlignment="Center">

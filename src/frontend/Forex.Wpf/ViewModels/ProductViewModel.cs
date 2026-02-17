@@ -19,6 +19,12 @@ public partial class ProductViewModel : ViewModelBase
     [ObservableProperty] private string imagePath = string.Empty;
     [ObservableProperty] private string imagePreviewPath = string.Empty;
 
+    // UI'da ko'rsatish uchun - preview priority
+    public string DisplayImagePath => !string.IsNullOrWhiteSpace(ImagePreviewPath) ? ImagePreviewPath : ImagePath;
+
+    partial void OnImagePathChanged(string value) => OnPropertyChanged(nameof(DisplayImagePath));
+    partial void OnImagePreviewPathChanged(string value) => OnPropertyChanged(nameof(DisplayImagePath));
+
     [ObservableProperty] private ObservableCollection<ProductTypeViewModel> productTypes = [];
     [ObservableProperty] private ProductTypeViewModel selectedType = new();
     private ProductViewModel? selected;

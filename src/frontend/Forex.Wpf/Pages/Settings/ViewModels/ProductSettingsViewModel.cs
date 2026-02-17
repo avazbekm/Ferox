@@ -241,20 +241,26 @@ public partial class ProductSettingsViewModel : ViewModelBase
 
         if (dialog.ShowDialog() == true)
         {
-            SelectedProduct.ImagePath = dialog.FileName;
-            OnPropertyChanged(nameof(SelectedProduct));
+            // Darhol lokal fayldan ko'rsatamiz
+            SelectedProduct.ImagePreviewPath = dialog.FileName;
+            
+            // Force UI update
+            var tempProduct = SelectedProduct;
+            SelectedProduct = null;
+            SelectedProduct = tempProduct;
 
+            // Background'da MinIO'ga yuklaymiz
             var uploadedPath = await client.FileStorage.UploadFileAsync(dialog.FileName);
 
             if (!string.IsNullOrEmpty(uploadedPath))
             {
                 SelectedProduct.ImagePath = uploadedPath;
-                OnPropertyChanged(nameof(SelectedProduct));
                 InfoMessage = "Rasm yuklandi! Saqlash tugmasini bosishni unutmang.";
             }
             else
             {
                 ErrorMessage = "Rasm yuklashda xatolik!";
+                SelectedProduct.ImagePreviewPath = string.Empty;
             }
         }
     }
