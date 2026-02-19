@@ -50,8 +50,8 @@ public static class ImageCompressionService
             int midQuality = (minQuality + maxQuality) / 2;
             var testStream = new MemoryStream();
 
-            var encoder = new WebpEncoder 
-            { 
+            var encoder = new WebpEncoder
+            {
                 Quality = midQuality,
                 FileFormat = WebpFileFormatType.Lossy,
                 Method = WebpEncodingMethod.BestQuality
@@ -63,7 +63,7 @@ public static class ImageCompressionService
             {
                 bestStream?.Dispose();
                 bestStream = testStream;
-                
+
                 minQuality = midQuality + 1;
             }
             else
@@ -76,10 +76,10 @@ public static class ImageCompressionService
         if (bestStream == null)
         {
             bestStream = new MemoryStream();
-            var encoder = new WebpEncoder 
-            { 
+            var encoder = new WebpEncoder
+            {
                 Quality = MinQuality,
-                FileFormat = WebpFileFormatType.Lossy 
+                FileFormat = WebpFileFormatType.Lossy
             };
             await image.SaveAsync(bestStream, encoder);
         }
@@ -102,12 +102,12 @@ public static class ImageCompressionService
             outputStream.SetLength(0);
             outputStream.Position = 0;
 
-            var encoder = new WebpEncoder 
-            { 
+            var encoder = new WebpEncoder
+            {
                 Quality = MinQuality,
-                FileFormat = WebpFileFormatType.Lossy 
+                FileFormat = WebpFileFormatType.Lossy
             };
-            
+
             await image.SaveAsync(outputStream, encoder);
 
             if (outputStream.Length <= MaxFileSizeBytes)

@@ -6,8 +6,27 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
+/// <summary>
+/// Universal focus navigation service for WPF applications.
+/// Manages keyboard-based navigation between UI elements with automatic visibility checking.
+/// Zero configuration required for standard WPF controls!
+/// </summary>
 public static class FocusNavigator
 {
+    #region Configuration (Optional - for advanced scenarios)
+
+    /// <summary>
+    /// Optional: Custom focusability checker. Only set if you need special logic beyond defaults.
+    /// </summary>
+    public static Func<UIElement, bool>? CustomFocusabilityChecker { get; set; }
+
+    /// <summary>
+    /// Optional: Custom focus handler. Only set if you need special focus behavior beyond defaults.
+    /// </summary>
+    public static Action<UIElement>? CustomFocusHandler { get; set; }
+
+    #endregion
+
     #region Private Classes
 
     private class FocusContext
@@ -332,7 +351,30 @@ public static class FocusNavigator
         if (element.Visibility != Visibility.Visible || !element.IsEnabled)
             return false;
 
-        // Visual tree orqali ota elementlarni tekshiramiz
+        // Check parent visibility in both Visual and Logical trees
+        if (!IsParentChainVisible(element))
+            return false;
+
+        // Check custom focusability if provided
+        if (CustomFocusabilityChecker != null)
+        {
+            return CustomFocusabilityChecker(element);
+        }
+
+        // Default focusability check - works for all standard WPF controls and UserControls
+        return element switch
+        {
+            TextBox tb => tb.IsTabStop,
+            ComboBox => true,
+            Button btn => btn.IsTabStop,
+            UserControl => true, // UserControls are focusable by default
+            _ => element.Focusable
+        };
+    }
+
+    private static bool IsParentChainVisible(UIElement element)
+    {
+        // Check Visual tree
         DependencyObject parent = VisualTreeHelper.GetParent(element);
         while (parent != null)
         {
@@ -344,7 +386,7 @@ public static class FocusNavigator
             parent = VisualTreeHelper.GetParent(parent);
         }
 
-        // Logical tree orqali ham tekshiramiz (UserControl'lar uchun)
+        // Check Logical tree (important for UserControls)
         DependencyObject logicalParent = LogicalTreeHelper.GetParent(element);
         while (logicalParent != null)
         {
@@ -356,14 +398,7 @@ public static class FocusNavigator
             logicalParent = LogicalTreeHelper.GetParent(logicalParent);
         }
 
-        return element switch
-        {
-            TextBox tb => tb.IsTabStop,
-            ComboBox => true,
-            Button btn => btn.IsTabStop,
-            UserControl uc when uc.GetType().Name.Contains("FloatingImageComboBox") => true,
-            _ => true
-        };
+        return true;
     }
 
     public static void FocusElement(UIElement element)
@@ -374,6 +409,14 @@ public static class FocusNavigator
         {
             element.Focus();
 
+            // Try custom focus handler first
+            if (CustomFocusHandler != null)
+            {
+                CustomFocusHandler(element);
+                return;
+            }
+
+            // Auto-detect and handle common patterns
             switch (element)
             {
                 case TextBox tb:
@@ -388,17 +431,66 @@ public static class FocusNavigator
                     }
                     break;
 
-                case UserControl uc when uc.GetType().Name.Contains("FloatingImageComboBox"):
-                    if (FindVisualChild<ComboBox>(uc) is ComboBox combo)
-                    {
-                        combo.Focus();
-                        combo.IsDropDownOpen = false;
-                    }
+                case UserControl uc:
+                    // Auto-detect and focus first ComboBox or TextBox inside UserControl
+                    TryFocusInnerControl(uc);
                     break;
             }
         }), DispatcherPriority.Input);
     }
 
+    /// <summary>
+    /// Automatically finds and focuses the first focusable control inside a UserControl
+    /// </summary>
+    private static void TryFocusInnerControl(UserControl userControl)
+    {
+        // Try to find ComboBox first (most common in custom controls)
+        if (FindVisualChild<ComboBox>(userControl) is ComboBox combo)
+        {
+            combo.Focus();
+            return;
+        }
+
+        // Then try TextBox
+        if (FindVisualChild<TextBox>(userControl) is TextBox textBox)
+        {
+            textBox.Focus();
+            textBox.SelectAll();
+            return;
+        }
+
+        // Finally, any focusable element
+        if (FindFirstFocusableChild(userControl) is UIElement focusable)
+        {
+            focusable.Focus();
+        }
+    }
+
+    /// <summary>
+    /// Finds first focusable child recursively
+    /// </summary>
+    private static UIElement? FindFirstFocusableChild(DependencyObject parent)
+    {
+        if (parent == null) return null;
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+
+            if (child is UIElement element && element.Focusable && element.IsEnabled && element.Visibility == Visibility.Visible)
+                return element;
+
+            var result = FindFirstFocusableChild(child);
+            if (result != null)
+                return result;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Helper: Finds first visual child of specific type
+    /// </summary>
     private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
     {
         if (parent == null) return null;

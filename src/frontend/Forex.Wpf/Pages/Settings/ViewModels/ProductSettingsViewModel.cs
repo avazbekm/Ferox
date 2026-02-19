@@ -243,7 +243,7 @@ public partial class ProductSettingsViewModel : ViewModelBase
         {
             // Darhol lokal fayldan ko'rsatamiz
             SelectedProduct.ImagePreviewPath = dialog.FileName;
-            
+
             // Force UI update
             var tempProduct = SelectedProduct;
             SelectedProduct = null;

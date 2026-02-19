@@ -18,13 +18,13 @@ public partial class App : Application
                 var env = context.HostingEnvironment;
 
                 config.SetBasePath(Directory.GetCurrentDirectory());
-                
+
                 // appsettings.json - optional (faqat development uchun)
                 config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                
+
                 // appsettings.Development.json - optional (faqat local dev uchun)
                 config.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
-                
+
                 // appsettings.{Environment}.json - optional (production uchun)
                 config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
             })
@@ -48,6 +48,7 @@ public partial class App : Application
 
         base.OnStartup(e);
     }
+
     protected override async void OnExit(ExitEventArgs e)
     {
         await AppHost!.StopAsync();
