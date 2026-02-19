@@ -332,7 +332,7 @@ public static class FocusNavigator
         if (element.Visibility != Visibility.Visible || !element.IsEnabled)
             return false;
 
-        // Ota elementlarning visibility'ini ham tekshiramiz
+        // Visual tree orqali ota elementlarni tekshiramiz
         DependencyObject parent = VisualTreeHelper.GetParent(element);
         while (parent != null)
         {
@@ -342,6 +342,18 @@ public static class FocusNavigator
                     return false;
             }
             parent = VisualTreeHelper.GetParent(parent);
+        }
+
+        // Logical tree orqali ham tekshiramiz (UserControl'lar uchun)
+        DependencyObject logicalParent = LogicalTreeHelper.GetParent(element);
+        while (logicalParent != null)
+        {
+            if (logicalParent is UIElement logicalElement)
+            {
+                if (logicalElement.Visibility != Visibility.Visible || !logicalElement.IsEnabled)
+                    return false;
+            }
+            logicalParent = LogicalTreeHelper.GetParent(logicalParent);
         }
 
         return element switch
