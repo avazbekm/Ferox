@@ -199,6 +199,9 @@ public partial class ProductPageViewModel : ViewModelBase
     {
         if (!Validate()) return;
 
+        if (CurrentProductEntry.Date.Date == DateTime.Today)
+            CurrentProductEntry.Date = DateTime.Now;
+
         ProductEntryRequest request = mapper.Map<ProductEntryRequest>(CurrentProductEntry);
         request.Product = mapper.Map<ProductRequest>(CurrentProduct);
 

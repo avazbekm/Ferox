@@ -16,7 +16,7 @@ public partial class ProductEntryViewModel : ViewModelBase
     [ObservableProperty] private int? bundleCount;
     [ObservableProperty] private decimal? unitPrice;
     [ObservableProperty] private ProductTypeViewModel? productType;
-    [ObservableProperty] private DateTime date = DateTime.Now;
+    [ObservableProperty] private DateTime date = DateTime.Today;
     [ObservableProperty] private decimal? costPrice;
     [ObservableProperty] private decimal? preparationCostPerUnit;
     [ObservableProperty] private decimal? totalAmount;

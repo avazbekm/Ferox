@@ -11,7 +11,7 @@ using System.Windows.Input;
 public partial class UserCalendar : UserControl
 {
     public static readonly DependencyProperty SelectedDateProperty =
-        DependencyProperty.Register("SelectedDate", typeof(DateTime?), typeof(UserCalendar), new PropertyMetadata(DateTime.Now, OnSelectedDateChanged));
+        DependencyProperty.Register("SelectedDate", typeof(DateTime?), typeof(UserCalendar), new PropertyMetadata(null, OnSelectedDateChanged));
 
     private static readonly Regex _dateInputRegex = new Regex("[0-8]", RegexOptions.Compiled);
     private static readonly Regex _dateFormatRegex = new Regex(@"^(?:\d{2}\.\d{2}\.\d{2,4})?$", RegexOptions.Compiled);

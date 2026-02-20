@@ -28,16 +28,17 @@
                 Click="BtnBack_Click"/>
 
         <TabControl Margin="10" Grid.Row="1" x:Name="tabControl">
-            <TabItem Header="Valyutalar">
+
+			<TabItem Header="Mahsulotlar">
+				<controls:ProductSettingsControl />
+			</TabItem>
+
+			<TabItem Header="Valyutalar">
                 <controls:CurrencySettingsControl />
             </TabItem>
             
             <TabItem Header="O'lchov birliklari">
                 <controls:UnitMeasureSettingsControl />
-            </TabItem>
-            
-            <TabItem Header="Mahsulotlar">
-                <controls:ProductSettingsControl />
             </TabItem>
         </TabControl>
     </Grid>
