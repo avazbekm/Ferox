@@ -154,7 +154,6 @@
                         <DataTemplate>
                             <TextBox
                                 x:Name="tbcQuantity"
-                                GotFocus="QuantityTextBox_GotFocus"
                                 Style="{StaticResource QuantityTextBoxStyle}"
                                 Text="{Binding Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}, TargetNullValue=0, FallbackValue=0}" />
                         </DataTemplate>

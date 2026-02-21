@@ -67,16 +67,16 @@ public partial class FloatingComboBox : UserControl
         set => SetValue(SelectedItemProperty, value);
     }
 
-    // IsEditable
     public static readonly DependencyProperty IsEditableProperty =
-        DependencyProperty.Register(nameof(IsEditable), typeof(object), typeof(FloatingComboBox),
-            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        DependencyProperty.Register(nameof(IsEditable), typeof(bool), typeof(FloatingComboBox),
+            new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
-    public object? IsEditable
+    public bool IsEditable
     {
-        get => GetValue(IsEditableProperty);
+        get => (bool)GetValue(IsEditableProperty);
         set => SetValue(IsEditableProperty, value);
     }
+
 
     // IsTextSearchEnabled
     public static readonly DependencyProperty IsTextSearchEnabledProperty =
@@ -152,5 +152,5 @@ public partial class FloatingComboBox : UserControl
     }
 
     // Ichki ComboBox'ga to'g'ridan-to'g'ri kirish kerak bo'lsa
-    public ComboBox ComboBox => combobox;
+    public ComboBox ComboBox => combo;
 }

@@ -1,8 +1,8 @@
 ﻿namespace Forex.Application.Features.Auth.Commands;
 
 using AutoMapper;
-using Forex.Application.Commons.Exceptions;
-using Forex.Application.Commons.Interfaces;
+using Forex.Application.Common.Exceptions;
+using Forex.Application.Common.Interfaces;
 using Forex.Application.Features.Auth.DTOs;
 using Forex.Application.Features.Users.DTOs;
 using MediatR;
@@ -25,7 +25,7 @@ public class LoginCommandHandler(
     public async Task<AuthResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         var user = await context.Users.FirstOrDefaultAsync(
-            u =>  u.Username == request.Username,
+            u => u.Username == request.Username,
             cancellationToken);
 
         if (user is null || !hasher.VerifyPassword(user.PasswordHash!, request.Password!))

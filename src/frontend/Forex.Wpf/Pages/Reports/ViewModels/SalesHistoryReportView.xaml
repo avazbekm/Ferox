@@ -233,13 +233,12 @@
         <!--  DataGrid — SEN HOZIRGI USTUNLARING TO‘LIQ!  -->
         <DataGrid
             Grid.Row="1"
-            Margin="10,5"
             AlternatingRowBackground="#F8F9FA"
             VirtualizingStackPanel.VirtualizationMode="Standard"
             EnableRowVirtualization="True"
             AutoGenerateColumns="False"
-            BorderBrush="#DDDDDD"
-            BorderThickness="1"
+            BorderBrush="LightGray"
+            BorderThickness="2"
             FontSize="14"
             GridLinesVisibility="All"
             HeadersVisibility="Column"

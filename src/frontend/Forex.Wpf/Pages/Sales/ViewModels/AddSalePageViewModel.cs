@@ -19,10 +19,10 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Input;
 
 public partial class AddSalePageViewModel : ViewModelBase
 {
@@ -799,7 +799,7 @@ public partial class AddSalePageViewModel : ViewModelBase
 
         var response = await client.Sales.Filter(request).Handle(isLoading => IsLoading = isLoading);
 
-        if (!response.IsSuccess || !response.Data.Any())
+        if (!response.IsSuccess)
         {
             ErrorMessage = response.Message ?? "Savdoni yuklashda xatolik!";
             return;
@@ -829,7 +829,7 @@ public partial class AddSalePageViewModel : ViewModelBase
                 if (product == null && saleItem.ProductType?.Product is not null)
                 {
                     product = mapper.Map<ProductViewModel>(saleItem.ProductType.Product);
-                    product.ProductTypes = new ObservableCollection<ProductTypeViewModel>();
+                    product.ProductTypes = [];
                     AvailableProducts.Add(product);
                 }
 
@@ -867,20 +867,4 @@ public partial class AddSalePageViewModel : ViewModelBase
     }
 
     #endregion
-
-    [ObservableProperty]
-    private ObservableCollection<ComboItemModel> countries =
-    [
-        new ComboItemModel { Name = "Uzbekistan", PhotoPath = "https://flagsapi.com/UZ/flat/64.png" },
-        new ComboItemModel { Name = "USA", PhotoPath = "https://flagsapi.com/US/flat/64.png" },
-        new ComboItemModel { Name = "Japan", PhotoPath = "https://flagsapi.com/JP/flat/64.png" }
-    ];
-
-    [ObservableProperty] private ComboItemModel selectedCountry;
-}
-
-public partial class ComboItemModel : ObservableObject
-{
-    [ObservableProperty] private string name;
-    [ObservableProperty] private string photoPath;
 }

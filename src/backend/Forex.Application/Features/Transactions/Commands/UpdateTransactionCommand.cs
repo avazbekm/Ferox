@@ -1,8 +1,8 @@
 ﻿namespace Forex.Application.Features.Transactions.Commands;
 
-using Forex.Application.Commons.Exceptions;
-using Forex.Application.Commons.Extensions;
-using Forex.Application.Commons.Interfaces;
+using Forex.Application.Common.Exceptions;
+using Forex.Application.Common.Extensions;
+using Forex.Application.Common.Interfaces;
 using Forex.Domain.Entities;
 using Forex.Domain.Enums;
 using MediatR;
@@ -144,7 +144,7 @@ public class UpdateTransactionCommandHandler(
 
         var amountInUZS = transaction.Amount * transaction.ExchangeRate;
         var delta = amountInUZS + transaction.Discount;
-        if(transaction.IsIncome)
+        if (transaction.IsIncome)
             userAccount.Balance -= delta;
         else
             userAccount.Balance += delta;
@@ -158,7 +158,7 @@ public class UpdateTransactionCommandHandler(
 
         if (transaction.PaymentMethod == PaymentMethod.Naqd)
         {
-            if(transaction.IsIncome)
+            if (transaction.IsIncome)
                 shopAccount.Balance -= transaction.Amount;
             else
                 shopAccount.Balance += transaction.Amount;
@@ -222,7 +222,7 @@ public class UpdateTransactionCommandHandler(
 
         if (request.PaymentMethod == PaymentMethod.Naqd)
         {
-            if(transaction.IsIncome)
+            if (transaction.IsIncome)
                 shopAccount.Balance += request.Amount;
             else
                 shopAccount.Balance -= request.Amount;

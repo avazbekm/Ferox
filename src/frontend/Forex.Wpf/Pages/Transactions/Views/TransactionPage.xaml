@@ -11,7 +11,7 @@
     d:DesignWidth="1000"
     mc:Ignorable="d">
 
-    <Grid Margin="16" Background="AliceBlue">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -124,6 +124,7 @@
                     Content="Sana:"
                     FontSize="14" />
                 <controls:UserCalendar
+                    x:Name="dateControl"
                     Grid.Column="1"
                     Height="26"
                     Margin="0,1,0,1"
@@ -144,6 +145,7 @@
                     BorderThickness="1"
                     CornerRadius="4">
                     <ComboBox
+                        x:Name="cbUser"
                         Padding="5,1"
                         BorderThickness="0"
                         DisplayMemberPath="Name"
@@ -168,6 +170,7 @@
                     BorderThickness="1"
                     CornerRadius="4">
                     <ComboBox
+                        x:Name="cbCurrency"
                         Padding="5,1"
                         BorderThickness="0"
                         DisplayMemberPath="Name"
@@ -216,6 +219,7 @@
                     BorderThickness="1"
                     CornerRadius="4">
                     <ComboBox
+                        x:Name="cbPaymentMethod"
                         Padding="5,1"
                         BorderThickness="0"
                         FontSize="14"
@@ -269,6 +273,7 @@
                     BorderThickness="1"
                     CornerRadius="4">
                     <TextBox
+                        x:Name="tbExchangeRate"
                         Padding="3,0"
                         BorderThickness="0"
                         FontSize="14"
@@ -293,6 +298,7 @@
                     BorderThickness="1"
                     CornerRadius="4">
                     <TextBox
+                        x:Name="tbDiscount"
                         Padding="3,0"
                         BorderThickness="0"
                         FontSize="14"
@@ -318,6 +324,7 @@
                     BorderThickness="1"
                     CornerRadius="4">
                     <TextBox
+                        x:Name="tbDescription"
                         Padding="3,0"
                         BorderThickness="0"
                         FontSize="14"
@@ -481,36 +488,20 @@
                     FontSize="14"
                     SelectedDate="{Binding EndDate, Mode=TwoWay}" />
 
-                <TextBlock
+				<TextBlock
                     Margin="20,0,10,0"
                     VerticalAlignment="Center"
                     Text="Foydalanuvchi:" />
-                <!--<Border // TODO user bo'yicha filterlash
-                Width="150"
-                Height="30"
-                Margin="0,0,10,0"
-                BorderBrush="{DynamicResource PrimaryTextColor}"
-                BorderThickness="1"
-                CornerRadius="4">
-                <ComboBox
-                Padding="5,1"
-                BorderThickness="0"
-                DisplayMemberPath="Name"
-                FontSize="14"
-                IsTextSearchEnabled="True"
-                IsEditable="True"
-                ItemsSource="{Binding AvailableUsers}"
-                SelectedItem="{Binding SelectedFilterUser}" />
-                </Border>-->
-            </StackPanel>
+			</StackPanel>
         </md:Card>
 
         <!--  Transaction History DataGrid  -->
         <DataGrid
             Grid.Row="4"
-            Margin="5"
             AlternatingRowBackground="#F9F9F9"
             AutoGenerateColumns="False"
+            BorderBrush="LightGray"
+            BorderThickness="2"
             CanUserAddRows="False"
             VirtualizingStackPanel.VirtualizationMode="Standard"
             EnableRowVirtualization="True"

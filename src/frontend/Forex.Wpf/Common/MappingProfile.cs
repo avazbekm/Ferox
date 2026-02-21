@@ -5,9 +5,6 @@ using Forex.ClientService.Models.Responses;
 using Forex.Wpf.Pages.Processes.ViewModels;
 using Forex.Wpf.ViewModels;
 using Mapster;
-using System.IO;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 public static class MappingProfile
 {
@@ -15,26 +12,32 @@ public static class MappingProfile
     {
         // 🔹 Product
         config.NewConfig<ProductResponse, ProductViewModel>();
+        config.NewConfig<ProductViewModel, ProductViewModel>()
+            .PreserveReference(true);
         config.NewConfig<ProductViewModel, ProductRequest>()
-            .Map(dest => dest.UnitMeasureId, src => src.UnitMeasure.Id)
-            .Map(dest => dest.ImageBytes, src => ImageToBytes(src.Image));
+            .Map(dest => dest.UnitMeasureId, src => src.UnitMeasure.Id);
 
         // 🔹 ProductTypes
         config.NewConfig<ProductTypeResponse, ProductTypeViewModel>();
+        config.NewConfig<ProductTypeViewModel, ProductTypeViewModel>()
+            .PreserveReference(true);
         config.NewConfig<ProductTypeViewModel, ProductTypeRequest>();
 
         // 🔹 ProductTypeItem
         config.NewConfig<ProductTypeItemViewModel, ProductTypeItemRequest>();
 
+        config.NewConfig<ProductEntryViewModel, ProductEntryViewModel>()
+            .PreserveReference(true);
+
         config.NewConfig<ProductEntryViewModel, ProductEntryRequest>();
         config.NewConfig<ProductEntryResponse, ProductEntryViewModel>()
+            .Map(dest => dest.BundleCount, src => src.Count / src.BundleItemCount)
             .Map(dest => dest.Date, src => src.Date.ToLocalTime());
 
         // 🔹 SemiProduct
         config.NewConfig<SemiProductResponse, SemiProductViewModel>();
         config.NewConfig<SemiProductViewModel, SemiProductRequest>()
-            .Map(dest => dest.UnitMeasureId, src => src.UnitMeasure.Id)
-            .Map(dest => dest.ImageBytes, src => ImageToBytes(src.Image));
+            .Map(dest => dest.UnitMeasureId, src => src.UnitMeasure.Id);
 
         // Sale
         config.NewConfig<SaleViewModel, SaleRequest>();
@@ -101,18 +104,5 @@ public static class MappingProfile
             .Map(dest => dest.ExchangeRate, src => src.Currency.ExchangeRate)
             .Map(dest => dest.CurrencyId, src => src.Currency.Id)
             .Map(dest => dest.UserId, src => src.User.Id);
-    }
-
-    // 🔹 ImageSource → byte[] maplash (Minioga upload uchun)
-    private static byte[]? ImageToBytes(ImageSource? img)
-    {
-        if (img is not BitmapSource bmp) return null;
-
-        var encoder = new PngBitmapEncoder();
-        encoder.Frames.Add(BitmapFrame.Create(bmp));
-
-        using var ms = new MemoryStream();
-        encoder.Save(ms);
-        return ms.ToArray();
     }
 }

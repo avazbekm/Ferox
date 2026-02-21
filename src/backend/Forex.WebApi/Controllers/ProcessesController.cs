@@ -10,11 +10,11 @@ public class ProcessesController : BaseController
 {
     [HttpPost]
     public async Task<IActionResult> Entry(List<EntryToProcessCommand> commands)
-        => Ok(new Response { Data = await Mediator.Send(new CreateEntryToProcessCommand(commands)) });
+        => Ok(new Response { Data = await Mediator.Send(new CreateEntryToProcessCommand(commands), Ct) });
 
     [HttpPut]
     public async Task<IActionResult> Edit(EditEntryToProcessCommand command)
-        => Ok(new Response { Data = await Mediator.Send(command) });
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
@@ -22,5 +22,5 @@ public class ProcessesController : BaseController
 
     [HttpPost("filter")]
     public async Task<IActionResult> GetFiltered(InProcessFilterQuery query)
-        => Ok(new Response { Data = await Mediator.Send(query) });
+        => Ok(new Response { Data = await Mediator.Send(query, Ct) });
 }

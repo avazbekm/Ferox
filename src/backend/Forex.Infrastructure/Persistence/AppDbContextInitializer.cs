@@ -1,6 +1,6 @@
 ﻿namespace Forex.Infrastructure.Persistence;
 
-using Forex.Application.Commons.Interfaces;
+using Forex.Application.Common.Interfaces;
 using Forex.Domain.Entities;
 using Forex.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +21,7 @@ public static class AppDbContextInitializer
                 Name = "System Admin",
                 Username = "admin",
                 Email = "admin@forex.uz",
-                Role = UserRole.Hodim, 
+                Role = UserRole.Hodim,
                 PasswordHash = hasher.HashPassword("741"),
                 NormalizedName = "SYSTEM ADMIN"
             };

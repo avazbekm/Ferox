@@ -17,5 +17,5 @@ public class ShopsController
 {
     [HttpPost("filter")]
     public async Task<IActionResult> GetFiltered(ShopFilterQuery query)
-        => Ok(new Response { Data = await Mediator.Send(query) });
+        => Ok(new Response { Data = await Mediator.Send(query, Ct) });
 }

@@ -10,21 +10,21 @@ public class SalesController : BaseController
 {
     [HttpPost]
     public async Task<IActionResult> Entry(CreateSaleCommand command)
-        => Ok(new Response { Data = await Mediator.Send(command) });
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpPut]
     public async Task<IActionResult> Update(UpdateSaleCommand command)
-        => Ok(new Response { Data = await Mediator.Send(command) });
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
-        => Ok(new Response { Data = await Mediator.Send(new DeleteSaleCommand(id)) });
+        => Ok(new Response { Data = await Mediator.Send(new DeleteSaleCommand(id), Ct) });
 
     [HttpPost("filter")]
     public async Task<IActionResult> GetFiltered(SaleFilterQuery query)
-       => Ok(new Response { Data = await Mediator.Send(query) });
+        => Ok(new Response { Data = await Mediator.Send(query, Ct) });
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
-      => Ok(new Response { Data = await Mediator.Send(new GetAllSalesQuery()) });
+        => Ok(new Response { Data = await Mediator.Send(new GetAllSalesQuery(), Ct) });
 }

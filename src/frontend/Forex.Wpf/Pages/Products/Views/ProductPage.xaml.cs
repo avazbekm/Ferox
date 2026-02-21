@@ -1,9 +1,11 @@
 ﻿namespace Forex.Wpf.Pages.Products;
 
+using CommunityToolkit.Mvvm.Messaging;
+using Forex.Wpf.Common.Interfaces;
+using Forex.Wpf.Common.Messages;
 using Forex.Wpf.Common.Services;
 using Forex.Wpf.Pages.Home;
 using Forex.Wpf.Pages.Products.ViewModels;
-using Forex.Wpf.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,20 +13,27 @@ using System.Windows.Input;
 
 public partial class ProductPage : Page
 {
-    private static MainWindow Main => (MainWindow)Application.Current.MainWindow;
     private ProductPageViewModel vm;
+    private INavigationService navigation;
 
     public ProductPage()
     {
         InitializeComponent();
         vm = App.AppHost!.Services.GetRequiredService<ProductPageViewModel>();
+        navigation = App.AppHost!.Services.GetRequiredService<INavigationService>();
         DataContext = vm;
+
+        WeakReferenceMessenger.Default.Register<FocusControlMessage>(this, (r, m) =>
+        {
+            OnFocusRequestReceived(m.ControlName);
+        });
 
         Loaded += ProductPage_Loaded;
     }
 
     private void ProductPage_Loaded(object sender, RoutedEventArgs e)
     {
+        this.ResizeWindow(1300, 700);
         RegisterFocusNavigation();
         RegisterGlobalShortcuts();
     }
@@ -32,30 +41,25 @@ public partial class ProductPage : Page
     private void RegisterFocusNavigation()
     {
         FocusNavigator.RegisterElements([
-            dateBegin.text,
-            dateEnd.text,
-            btnRefresh,
-            cbxProductCode.combobox,
-            cbxProductName.combobox,
-            cbxProductionOrigin.combobox,
-            cbxProductType.combobox,
-            tbxBundle.inputBox,
-            tbxBundleItemCount.inputBox,
-            tbxQuantity.inputBox,
-            tbxCostPrice.inputBox,
+            date.input,
+            productCombo.combo,
+            tbxCode.input,
+            tbxName.input,
+            cbxProductionOrigin.combo,
+            cbxProductType.combo,
+            tbxBundle.input,
+            tbxBundleItemCount.input,
+            tbxQuantity.input,
+            tbxCostPrice.input,
             btnAdd,
             btnCancel
         ]);
-        FocusNavigator.SetFocusRedirect(btnAdd, cbxProductCode.combobox);
+
+        FocusNavigator.SetFocusRedirect(btnAdd, productCombo.combo);
     }
 
     private void RegisterGlobalShortcuts()
     {
-        ShortcutAttacher.RegisterShortcut(
-            targetButton: btnRefresh,
-            key: Key.F5
-        );
-
         ShortcutAttacher.RegisterShortcut(
             targetButton: btnBack,
             key: Key.Escape
@@ -66,18 +70,6 @@ public partial class ProductPage : Page
             key: Key.Enter,
             modifiers: ModifierKeys.Control
         );
-
-        ShortcutAttacher.RegisterShortcut(
-            targetButton: btnRedirectToAddPage,
-            key: Key.Add
-        );
-
-        ShortcutAttacher.RegisterShortcut(
-            targetElement: this,
-            key: Key.E,
-            modifiers: ModifierKeys.Control,
-            targetAction: () => _ = vm.Edit()
-        );
     }
 
     private void BtnBack_Click(object sender, RoutedEventArgs e)
@@ -85,11 +77,27 @@ public partial class ProductPage : Page
         if (NavigationService?.CanGoBack == true)
             NavigationService.GoBack();
         else
-            Main.NavigateTo(new HomePage());
+            navigation.NavigateTo(new HomePage());
     }
 
-    private void DataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    private async void DataGrid_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        _ = vm.Edit();
+        if (e.VerticalChange <= 0) return;
+
+        if (e.OriginalSource is not ScrollViewer scrollViewer) return;
+
+        double scrollPosition = scrollViewer.VerticalOffset;
+        double scrollHeight = scrollViewer.ScrollableHeight;
+
+        if (scrollHeight > 0 && scrollPosition >= scrollHeight * 0.99)
+            await vm.LoadMoreEntriesCommand.ExecuteAsync(null);
+    }
+
+    private void OnFocusRequestReceived(string controlName)
+    {
+        if (controlName == "ProductCode")
+            FocusNavigator.FocusElement(productCombo.combo);
+        else if (controlName == "ProductType")
+            FocusNavigator.FocusElement(cbxProductType.combo);
     }
 }

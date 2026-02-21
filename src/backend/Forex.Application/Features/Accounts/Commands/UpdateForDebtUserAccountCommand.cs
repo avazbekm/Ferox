@@ -1,7 +1,7 @@
 ﻿namespace Forex.Application.Features.Accounts.Commands;
 
-using Forex.Application.Commons.Exceptions;
-using Forex.Application.Commons.Interfaces;
+using Forex.Application.Common.Exceptions;
+using Forex.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,7 +28,7 @@ public class UpdateForDebtUserAccountCommandHandler(
 
         userAccountEntity.DueDate = DateTime.SpecifyKind(request.DueDate!.Value, DateTimeKind.Utc);
         userAccountEntity.Description = request.Description;
-        // Save qilish
+
         return await context.SaveAsync(cancellationToken);
     }
 

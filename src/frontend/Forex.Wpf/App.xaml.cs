@@ -18,9 +18,15 @@ public partial class App : Application
                 var env = context.HostingEnvironment;
 
                 config.SetBasePath(Directory.GetCurrentDirectory());
-                config.AddJsonFile("appsettings.json", false, true);
-                config.AddJsonFile($"appsettings.Development.json", true, true);
-                config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true);
+
+                // appsettings.json - optional (faqat development uchun)
+                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+                // appsettings.Development.json - optional (faqat local dev uchun)
+                config.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+
+                // appsettings.{Environment}.json - optional (production uchun)
+                config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
             })
             .ConfigureServices((context, services) =>
             {
@@ -35,7 +41,6 @@ public partial class App : Application
         await AppHost!.StartAsync();
 
         // 2. DI konteynerdan MainWindow ni olamiz
-        // Eslatma: MainWindow xizmatlar (Services) ichida ro'yxatdan o'tgan bo'lishi kerak
         var mainWindow = AppHost.Services.GetRequiredService<Windows.MainWindow>();
 
         // 3. Oynani ko'rsatamiz
@@ -43,6 +48,7 @@ public partial class App : Application
 
         base.OnStartup(e);
     }
+
     protected override async void OnExit(ExitEventArgs e)
     {
         await AppHost!.StopAsync();

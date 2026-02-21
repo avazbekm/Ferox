@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes">
-    <Grid Margin="12" Background="White">
+    <Grid Margin="10" Background="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="90" />
             <RowDefinition Height="*" />
@@ -130,10 +130,11 @@
 
         <DataGrid
             Grid.Row="1"
-            Margin="10,5"
             AlternatingRowBackground="#F5F5F5"
             VirtualizingStackPanel.VirtualizationMode="Standard"
             AutoGenerateColumns="False"
+            BorderThickness="2"
+            BorderBrush="LightGray"
             FontSize="14"
             IsReadOnly="True"
             ItemsSource="{Binding Items}">

@@ -26,8 +26,8 @@ public partial class SalesHistoryReportView : UserControl
     {
         FocusNavigator.RegisterElements([
             cbxCustomer,
-            dateBegin.text,
-            dateEnd.text,
+            dateBegin.input,
+            dateEnd.input,
             cbxProductCode,
             cbxProductName,
             btnPreview,

@@ -9,7 +9,7 @@ using System.Windows.Media.Animation;
 public static class NotificationService
 {
     private static readonly List<Grid> _activeNotifications = [];
-    private static readonly object _lock = new();
+    private static readonly Lock _lock = new();
 
     public static void Show(
         string message,
@@ -26,13 +26,11 @@ public static class NotificationService
         if (rootGrid is null)
             return;
 
-        // 📏 Calculate duration based on message length
         var durationSeconds = CalculateReadingDuration(message, speedMultiplier);
 
         var background = GetBackground(type);
         var darkerBackground = GetDarkerBrush(background);
 
-        // 📦 Snackbar content with embedded timeline
         var dock = new DockPanel { LastChildFill = true };
 
         var progressBar = new Border
@@ -75,12 +73,10 @@ public static class NotificationService
             Opacity = 0
         };
 
-        // 🎯 Set initial width based on window size and percentage
         UpdateContainerWidth(container, mainWindow, widthPercentage);
 
         container.Children.Add(messageBorder);
 
-        // 🔄 Shift existing notifications up
         lock (_lock)
         {
             ShiftNotificationsUp(position);
@@ -89,7 +85,6 @@ public static class NotificationService
 
         rootGrid.Children.Add(container);
 
-        // 📐 Handle window size changes
         SizeChangedEventHandler sizeHandler = null!;
         sizeHandler = (s, e) =>
         {
@@ -97,11 +92,9 @@ public static class NotificationService
         };
         mainWindow.SizeChanged += sizeHandler;
 
-        // 🎞️ Fade in
         var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.3));
         container.BeginAnimation(UIElement.OpacityProperty, fadeIn);
 
-        // 🎞️ Timeline progress + fade out
         messageBorder.Loaded += (_, _) =>
         {
             var fullWidth = messageBorder.ActualWidth;
@@ -147,7 +140,6 @@ public static class NotificationService
             storyboard.Children.Add(opacityAnim);
             storyboard.Begin();
 
-            // ✅ Snackbar fade out
             Task.Delay((int)(durationSeconds * 1000)).ContinueWith(_ =>
             {
                 Application.Current.Dispatcher.Invoke(() =>
@@ -169,37 +161,23 @@ public static class NotificationService
         };
     }
 
-    /// <summary>
-    /// Matn uzunligini hisobga olgan holda ko'rinib turish vaqtini hisoblash
-    /// O'rtacha o'qishd tezligi: minutiga 200-250 ta so'z (soniyasiga 3-4 so'z)
-    /// </summary>
     private static double CalculateReadingDuration(string message, double speedMultiplier)
     {
         if (string.IsNullOrWhiteSpace(message))
             return 3.0 / speedMultiplier;
 
-        // Count words
         var wordCount = message.Split([' ', '\n', '\r', '\t'], StringSplitOptions.RemoveEmptyEntries).Length;
-
-        // Xabar kutilmaganda chiqishini hisobga olib maksimumni olamiz: 4
         var wordsPerSecond = 4d;
-
-        // Calculate base duration
         var baseDuration = wordCount / wordsPerSecond;
 
-        // Add minimum time (2 seconds) and maximum time (15 seconds)
         var minDuration = 2d;
         var maxDuration = 15d;
 
         baseDuration = Math.Max(minDuration, Math.Min(baseDuration, maxDuration));
 
-        // Apply speed multiplier (1.0 = normal, 2.0 = 2x faster, 0.5 = 2x slower)
         return baseDuration / speedMultiplier;
     }
 
-    /// <summary>
-    /// Shifts existing notifications upward to make room for new ones
-    /// </summary>
     private static void ShiftNotificationsUp(NotificationPosition position)
     {
         if (_activeNotifications.Count == 0)
@@ -211,38 +189,27 @@ public static class NotificationService
                 notification.HorizontalAlignment != GetHorizontalAlignment(position))
                 continue;
 
-            // Get current margin
             var currentMargin = notification.Margin;
-
-            // Calculate new vertical offset based on notification height
-            var notificationHeight = notification.ActualHeight > 0 ? notification.ActualHeight : 60; // Estimate if not rendered
-            var spacing = 10; // Space between notifications
+            var notificationHeight = notification.ActualHeight > 0 ? notification.ActualHeight : 60;
+            var spacing = 10;
             var offset = notificationHeight + spacing;
 
-            // Apply offset based on position
             Thickness newMargin;
             if (position == NotificationPosition.TopLeft || position == NotificationPosition.TopRight)
-            {
-                // Top positions: shift down
                 newMargin = new Thickness(
                     currentMargin.Left,
                     currentMargin.Top + offset,
                     currentMargin.Right,
                     currentMargin.Bottom
                 );
-            }
             else
-            {
-                // Bottom positions: shift up
                 newMargin = new Thickness(
                     currentMargin.Left,
                     currentMargin.Top,
                     currentMargin.Right,
                     currentMargin.Bottom + offset
                 );
-            }
 
-            // Animate the shift
             var marginAnim = new ThicknessAnimation
             {
                 From = currentMargin,
@@ -259,9 +226,8 @@ public static class NotificationService
     {
         var calculatedWidth = window.ActualWidth * (widthPercentage / 100.0);
 
-        // Minimum width to prevent too small notifications
         var minWidth = 200.0;
-        var maxWidth = window.ActualWidth - 40; // 20px margin on each side
+        var maxWidth = window.ActualWidth - 40;
 
         container.Width = Math.Max(minWidth, Math.Min(calculatedWidth, maxWidth));
     }
@@ -272,9 +238,7 @@ public static class NotificationService
             return grid;
 
         if (window.Content is Frame frame && frame.Content is Page page)
-        {
             return VisualTreeHelper.GetChild(page, 0) as Grid;
-        }
 
         return null;
     }

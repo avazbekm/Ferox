@@ -1,6 +1,6 @@
 ﻿namespace Forex.Infrastructure.Security;
 
-using Forex.Application.Commons.Interfaces;
+using Forex.Application.Common.Interfaces;
 using Forex.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -19,7 +19,7 @@ public class JwtTokenGenerator(IConfiguration config) : IJwtTokenGenerator
 
         if (!string.IsNullOrWhiteSpace(user.Username))
             claims.Add(new Claim("username", user.Username));
-            
+
         claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
 
         if (!string.IsNullOrWhiteSpace(user.Email))

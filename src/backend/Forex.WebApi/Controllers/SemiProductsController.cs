@@ -8,10 +8,10 @@ using Forex.WebApi.Models;
 using Microsoft.AspNetCore.Mvc;
 
 public class SemiProductsController
-    : ReadOnlyController<SemiProductDto, GetAllSemiProductsQuery, GetSemiProductByIdQuery>
+    : QueryControllers<SemiProductDto, GetAllSemiProductsQuery, GetSemiProductByIdQuery>
 {
 
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
-        => Ok(new Response { Data = await Mediator.Send(new DeleteSemiProductCommand(id)) });
+        => Ok(new Response { Data = await Mediator.Send(new DeleteSemiProductCommand(id), Ct) });
 }

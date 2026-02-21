@@ -8,10 +8,10 @@ public partial class SaleItemViewModel : ViewModelBase
 {
     public long Id { get; set; }
     public long SaleId { get; set; }
-    public long ProductTypeId { get; set; }   // 24-29, 30-35, 36-41 razmeri idsi
-    [ObservableProperty] private uint? bundleCount;
-    [ObservableProperty] private uint? bundleItemCount;
-    [ObservableProperty] private uint? totalCount;
+    public long ProductTypeId { get; set; }
+    [ObservableProperty] private int? bundleCount;
+    [ObservableProperty] private int? bundleItemCount;
+    [ObservableProperty] private int? totalCount;
     [ObservableProperty] private decimal? unitPrice;
     [ObservableProperty] private decimal? costtPrice;
     [ObservableProperty] private decimal? benifit;
@@ -24,9 +24,9 @@ public partial class SaleItemViewModel : ViewModelBase
     #region Property Changes
 
     partial void OnUnitPriceChanged(decimal? value) => RecalculateTotalAmount();
-    partial void OnBundleCountChanged(uint? value) => ReCalculateTotalCount();
+    partial void OnBundleCountChanged(int? value) => ReCalculateTotalCount();
     partial void OnProductTypeChanged(ProductTypeViewModel value) => ReCalculateTotalCount();
-    partial void OnTotalCountChanged(uint? value) => RecalculateTotalAmount();
+    partial void OnTotalCountChanged(int? value) => RecalculateTotalAmount();
 
     #endregion Property Changes
 

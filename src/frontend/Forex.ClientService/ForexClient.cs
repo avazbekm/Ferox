@@ -20,7 +20,8 @@ public class ForexClient(
     IApiOperationRecord operationRecord,
     IApiShops shops,
     IApiProcesses processes,
-    IApiProductResidues productResidues)
+    IApiProductResidues productResidues,
+    IFileStorageClient fileStorage)
 {
     public IApiAuth Auth { get; } = auth;
     public IApiUser Users { get; } = users;
@@ -40,4 +41,5 @@ public class ForexClient(
     public IApiShops Shops { get; set; } = shops;
     public IApiProcesses Processes { get; set; } = processes;
     public IApiProductResidues ProductResidues { get; set; } = productResidues;
+    public IFileStorageClient FileStorage { get; } = fileStorage;
 }

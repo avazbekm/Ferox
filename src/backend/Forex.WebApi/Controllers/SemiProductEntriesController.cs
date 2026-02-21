@@ -9,9 +9,9 @@ public class SemiProductEntriesController : BaseController
 {
     [HttpPost]
     public async Task<IActionResult> Create(CreateSemiProductIntakeCommand command)
-        => Ok(new Response { Data = await Mediator.Send(command) });
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpDelete("{invoiceId:long}")]
     public async Task<IActionResult> Delete(long invoiceId)
-        => Ok(new Response { Data = await Mediator.Send(new DeleteSemiProductIntakeCommand(invoiceId)) });
+        => Ok(new Response { Data = await Mediator.Send(new DeleteSemiProductIntakeCommand(invoiceId), Ct) });
 }
