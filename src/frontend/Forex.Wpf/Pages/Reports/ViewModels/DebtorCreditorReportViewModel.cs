@@ -68,7 +68,7 @@ public partial class DebtorCreditorReportViewModel : ViewModelBase
         var list = new List<DebtorCreditorItemViewModel>();
         foreach (var u in users)
         {
-            if (u.UserName == "admin") continue;
+            if (u.Username == "admin") continue;
             var balance = u.FirstBalance ?? 0;
             list.Add(new DebtorCreditorItemViewModel
             {

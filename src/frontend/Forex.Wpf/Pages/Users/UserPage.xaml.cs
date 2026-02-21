@@ -138,7 +138,7 @@ public partial class UserPage : Page
                 Role = Enum.TryParse<UserRole>(cbRole.SelectedItem?.ToString(), out var role) ? role : currentUser.Role,
 
                 // 🔴 Admin hodimni tahrirlayotgan bo'lsa, yangi login va parolni olamiz
-                UserName = (tglHasAccess.IsChecked == true) ? txtUsername.Text.Trim() : currentUser.UserName,
+                Username = (tglHasAccess.IsChecked == true) ? txtUsername.Text.Trim() : currentUser.Username,
                 // Parol bo'sh bo'lsa, bazadagi eski parol qolaveradi (null yuborilsa o'zgarmaydi)
                 Password = (tglHasAccess.IsChecked == true && !string.IsNullOrWhiteSpace(txtPassword.Password))
                             ? txtPassword.Password.Trim() : null,
@@ -308,7 +308,7 @@ public partial class UserPage : Page
             // Agar yangi odam bo'lsa yoki tahrirlanayotgan odam eski admin bo'lmasa
             if (inputUsername == "admin")
             {
-                if (currentUser == null || currentUser.UserName?.ToLower() != "admin")
+                if (currentUser == null || currentUser.Username?.ToLower() != "admin")
                 {
                     MessageBox.Show("Yangi hodim uchun 'admin' loginini tanlash mumkin emas!",
                         "Taqiq", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -338,7 +338,7 @@ public partial class UserPage : Page
             Address = txtAddress.Text.Trim(),
             Description = txtDescription.Text.Trim(),
             Role = role,
-            UserName = txtUsername.Text.Trim(),
+            Username = txtUsername.Text.Trim(),
             Password = txtPassword.Password.Trim(),
             Accounts = [
                 new()
@@ -492,16 +492,16 @@ public partial class UserPage : Page
         // 1. Tizimga kirgan odam ADMIN bo'lsa
         // 2. Tahrirlanayotgan odam HODIM bo'lsa (yoki o'sha tahrirlanayotgan odamning o'zi admin bo'lsa)
         bool isEmployee = currentUser.Role == UserRole.Hodim;
-        bool isEditingAdminSelf = currentUser.UserName?.ToLower() == "admin";
+        bool isEditingAdminSelf = currentUser.Username?.ToLower() == "admin";
 
         if (IsLoggedInAsAdmin && (isEmployee || isEditingAdminSelf))
         {
             pnlEmployeeAccess.Visibility = Visibility.Visible;
-            txtUsername.Text = currentUser.UserName; // Bazadagi logini
+            txtUsername.Text = currentUser.Username; // Bazadagi logini
             txtPassword.Password = ""; // Parolni xavfsizlik uchun bo'sh ko'rsatamiz
 
             // Agar logini bo'lsa, toggleni yoqib qo'yamiz
-            tglHasAccess.IsChecked = !string.IsNullOrEmpty(currentUser.UserName);
+            tglHasAccess.IsChecked = !string.IsNullOrEmpty(currentUser.Username);
         }
         else
         {

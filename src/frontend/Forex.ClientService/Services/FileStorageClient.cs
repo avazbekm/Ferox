@@ -2,11 +2,12 @@ namespace Forex.ClientService.Services;
 
 using Forex.ClientService.Interfaces;
 using Forex.ClientService.Models.Requests;
+using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
-public class FileStorageClient(IApiProductEntries productEntriesApi, IHttpClientFactory httpClientFactory) : IFileStorageClient
+public class FileStorageClient(IApiProductEntries productEntriesApi, IHttpClientFactory httpClientFactory, IConfiguration configuration) : IFileStorageClient
 {
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
 
@@ -51,6 +52,20 @@ public class FileStorageClient(IApiProductEntries productEntriesApi, IHttpClient
         {
             return null;
         }
+    }
+
+    public string GetFullUrl(string? objectKey)
+    {
+        if (string.IsNullOrWhiteSpace(objectKey)) return string.Empty;
+
+        if (objectKey.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            return objectKey;
+
+        var baseUrl = configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5000";
+        var minioEndpoint = configuration["MinIO:PublicEndpoint"] ?? "localhost:9000";
+        var bucketName = configuration["MinIO:BucketName"] ?? "forex-uploads";
+
+        return $"http://{minioEndpoint}/{bucketName}/{objectKey.TrimStart('/')}";
     }
 
     private static string GetContentType(string fileName)

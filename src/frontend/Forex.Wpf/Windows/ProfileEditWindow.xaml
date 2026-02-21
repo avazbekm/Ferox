@@ -1,0 +1,217 @@
+﻿<Window
+    x:Class="Forex.Wpf.Windows.ProfileEditWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:controls="clr-namespace:Forex.Wpf.Resources.UserControls"
+    Title="Profilni tahrirlash"
+    Width="500"
+    Height="600"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    WindowStyle="SingleBorderWindow"
+    Background="{DynamicResource PrimaryBackground}"
+    mc:Ignorable="d">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock
+                Text="👤 Profil sozlamalari"
+                FontSize="22"
+                FontWeight="Bold"
+                Foreground="{StaticResource SecondaryTextColor}"
+                HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Avatar Section with Hover Effect -->
+                <Border
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,25"
+                    Padding="20"
+                    Background="White"
+                    CornerRadius="15"
+                    md:ElevationAssist.Elevation="Dp4">
+                    <Grid>
+                        <Border
+                            Width="120"
+                            Height="120"
+                            CornerRadius="60"
+                            BorderBrush="#FF4FC3F7"
+                            BorderThickness="3"
+                            HorizontalAlignment="Center"
+                            md:ElevationAssist.Elevation="Dp8"
+                            Cursor="Hand"
+                            MouseLeftButtonDown="Avatar_Click">
+                            <Border.Background>
+                                <ImageBrush 
+                                    x:Name="imgProfilePreview" 
+                                    ImageSource="/Resources/Assets/profile.jpg" 
+                                    Stretch="UniformToFill"/>
+                            </Border.Background>
+
+                            <!-- Hover Overlay -->
+                            <Grid x:Name="avatarOverlay" Background="Transparent">
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+
+                                <!-- Semi-transparent dark overlay -->
+                                <Border
+                                    Background="#99000000"
+                                    CornerRadius="60"
+                                    VerticalAlignment="Bottom"
+                                    Height="60">
+                                    <StackPanel 
+                                        VerticalAlignment="Center" 
+                                        HorizontalAlignment="Center">
+                                        <md:PackIcon 
+                                            Kind="Camera" 
+                                            Width="24" 
+                                            Height="24" 
+                                            Foreground="White" 
+                                            HorizontalAlignment="Center"/>
+                                        <TextBlock 
+                                            Text="Rasm yuklash" 
+                                            FontSize="11" 
+                                            Foreground="White" 
+                                            HorizontalAlignment="Center"
+                                            Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Profile Fields -->
+                <Border
+                    Background="White"
+                    CornerRadius="12"
+                    Padding="20"
+                    md:ElevationAssist.Elevation="Dp4">
+                    <StackPanel>
+                        <!-- Full Name -->
+                        <controls:FloatingInput
+                            x:Name="tbxFullName"
+                            Margin="0,0,0,15"
+                            Label="Ism va Familiya"
+                            Text="{Binding FullName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <!-- Username (Read-only) -->
+                        <controls:FloatingInput
+                            x:Name="tbxUsername"
+                            Margin="0,0,0,15"
+                            Label="Login (o'zgartirib bo'lmaydi)"
+                            IsReadOnly="True"
+                            Text="{Binding Username, Mode=OneWay}" />
+
+                        <!-- Phone -->
+                        <controls:FloatingInput
+                            x:Name="tbxPhone"
+                            Margin="0,0,0,15"
+                            Label="Telefon"
+                            Text="{Binding Phone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <!-- Email -->
+                        <controls:FloatingInput
+                            x:Name="tbxEmail"
+                            Margin="0,0,0,15"
+                            Label="Email"
+                            Text="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <!-- Address -->
+                        <controls:FloatingInput
+                            x:Name="tbxAddress"
+                            Margin="0,0,0,15"
+                            Label="Manzil"
+                            Text="{Binding Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <Separator Margin="0,10,0,15" Background="#FFE0E0E0" />
+
+                        <!-- Password Section -->
+                        <TextBlock
+                            Text="Parolni o'zgartirish"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            Foreground="#FF757575"
+                            Margin="0,0,0,10" />
+
+                        <PasswordBox
+                            x:Name="pwdNewPassword"
+                            Margin="0,0,0,10"
+                            md:HintAssist.Hint="Yangi parol (ixtiyoriy)"
+                            md:TextFieldAssist.HasClearButton="True"
+                            Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}" />
+
+                        <PasswordBox
+                            x:Name="pwdConfirmPassword"
+                            Margin="0,0,0,5"
+                            md:HintAssist.Hint="Parolni tasdiqlash"
+                            md:TextFieldAssist.HasClearButton="True"
+                            Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Action Buttons -->
+        <StackPanel
+            Grid.Row="2"
+            Margin="0,20,0,0"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal">
+            <Button
+                x:Name="btnSave"
+                Width="120"
+                Padding="12,8"
+                Margin="0,0,10,0"
+                md:ButtonAssist.CornerRadius="6"
+                Background="#FF4CAF50"
+                Foreground="White"
+                FontSize="14"
+                FontWeight="SemiBold"
+                Click="BtnSave_Click">
+                <StackPanel Orientation="Horizontal">
+                    <md:PackIcon Kind="ContentSave" Width="18" Height="18" VerticalAlignment="Center" />
+                    <TextBlock Margin="8,0,0,0" Text="Saqlash" />
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="btnClose"
+                Width="120"
+                Padding="12,8"
+                md:ButtonAssist.CornerRadius="6"
+                Background="#FF757575"
+                Foreground="White"
+                FontSize="14"
+                FontWeight="SemiBold"
+                Click="BtnClose_Click">
+                <StackPanel Orientation="Horizontal">
+                    <md:PackIcon Kind="Close" Width="18" Height="18" VerticalAlignment="Center" />
+                    <TextBlock Margin="8,0,0,0" Text="Yopish" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

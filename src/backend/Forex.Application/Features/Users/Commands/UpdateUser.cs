@@ -25,30 +25,30 @@ public record UpdateUserCommand(
     string? Address,
     string? Description,
     string? Password,
+    string? TempImagePath,
     List<UpdateUserAccountDto> Accounts) : IRequest<bool>;
 
 public class UpdateUserCommandHandler(
     IAppDbContext context,
     IPasswordHasher hasher,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IFileStorageService fileStorage)
     : IRequestHandler<UpdateUserCommand, bool>
 {
     public async Task<bool> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
-        // 1. Userni bazadan topish
         var user = await context.Users
             .Include(u => u.Accounts)
             .FirstOrDefaultAsync(u => u.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(User));
 
-        // 2. 🔥 XAVFSIZLIK TEKSHIRUVI
+        Console.WriteLine($"UpdateUser: UserId={request.Id}, Name={request.Name}, Username={request.Username}");
+
         bool isAdmin = currentUser.Username == "admin";
-        bool isSelf = currentUser.UserId == request.Id;
 
         if (!string.IsNullOrWhiteSpace(request.Username) && !isAdmin)
             throw new AppException($"Sizda {request.Username}ni o'zgartirish huquqi yo'q!");
 
-        // 3. Ism o'zgarayotgan bo'lsa, bazada boshqa odamda yo'qligini tekshirish
         var normalizedNewName = request.Name.ToNormalized();
         if (user.NormalizedName != normalizedNewName)
         {
@@ -59,9 +59,9 @@ public class UpdateUserCommandHandler(
             user.NormalizedName = normalizedNewName;
         }
 
-        // 4. Asosiy maydonlarni yangilash
         user.Phone = request.Phone;
-        user.Email = request.Email; // Sening kodingda bu qolib ketgan edi
+        user.Email = request.Email;
+        user.NormalizedEmail = request.Email?.ToNormalized();
         user.Address = request.Address;
         user.Description = request.Description;
 
@@ -72,20 +72,38 @@ public class UpdateUserCommandHandler(
                 var loginExists = await context.Users.AnyAsync(u => u.Username == request.Username && u.Id != user.Id, cancellationToken);
                 if (loginExists) throw new AppException("Bu login allaqachon band!");
             }
-            user.Username = request.Username; // Bo'sh bo'lsa login o'chiriladi (access revoked)
+            user.Username = request.Username;
         }
 
-        // 6. Parol yangilash (agar kiritilgan bo'lsa)
+        // Image handling - same as Product logic
+        var oldImagePath = user.ProfileImageUrl;
+        var newImagePath = request.TempImagePath;
+        string? imagePathToDelete = null;
+
+        if (!string.IsNullOrWhiteSpace(newImagePath) && newImagePath.Contains("/temp/"))
+        {
+            var movedKey = await fileStorage.MoveFileAsync(newImagePath, "users", cancellationToken);
+            user.ProfileImageUrl = movedKey ?? newImagePath;
+            imagePathToDelete = oldImagePath;
+        }
+        else if (string.IsNullOrWhiteSpace(newImagePath) && !string.IsNullOrWhiteSpace(oldImagePath))
+        {
+            imagePathToDelete = oldImagePath;
+            user.ProfileImageUrl = null;
+        }
+
         if (!string.IsNullOrWhiteSpace(request.Password))
         {
             user.PasswordHash = hasher.HashPassword(request.Password);
         }
 
-        // 7. Accountlarni yangilash
-        //UpdateAccounts(user, request.Accounts);
-
         context.Users.Update(user);
         var result = await context.SaveAsync(cancellationToken);
+
+        if (result && !string.IsNullOrWhiteSpace(imagePathToDelete))
+        {
+            await fileStorage.DeleteFileAsync(imagePathToDelete, cancellationToken);
+        }
 
         return result;
     }

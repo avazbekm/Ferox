@@ -6,137 +6,285 @@
     xmlns:local="clr-namespace:Forex.Wpf.Pages.Home"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:controls="clr-namespace:Forex.Wpf.Resources.UserControls"
     Title="HomePage"
     d:DesignHeight="580"
     d:DesignWidth="810"
     mc:Ignorable="d">
 
-    <StackPanel Background="{DynamicResource PrimaryBackground}">
+    <Grid Background="{DynamicResource PrimaryBackground}">
+        <!-- Main Content -->
+        <StackPanel x:Name="mainContent">
+            <!-- Modern Navbar -->
         <Border
             x:Name="mainMenu"
-            Height="60"
+            Height="65"
             Margin="10"
-            Padding="0,0,10,0"
+            Padding="15,0"
             md:ElevationAssist.Elevation="Dp8"
             Background="#FF4FC3F7"
-            CornerRadius="10">
+            CornerRadius="12">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!--  LOGO  -->
+                <!-- LOGO -->
                 <Border
                     Width="120"
                     Height="45"
-                    Margin="10,0,0,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
-                    md:ElevationAssist.Elevation="Dp2"
+                    md:ElevationAssist.Elevation="Dp3"
                     CornerRadius="10">
                     <Border.Background>
                         <ImageBrush ImageSource="/Resources/Assets/logo.png" Stretch="UniformToFill" />
                     </Border.Background>
                 </Border>
 
-                <!--  NAME + LOGOUT  -->
+                <!-- Right Side: Notifications + User Profile -->
                 <StackPanel
-                    Grid.Column="1"
-                    Margin="10"
+                    Grid.Column="2"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
 
-                    <TextBlock
-                        Margin="0,0,10,0"
-                        VerticalAlignment="Center"
-                        FontSize="16"
-                        Foreground="White"
-                        Text="{Binding FullName}" />
+                    <!-- Notification Button -->
+                    <Button
+                        x:Name="btnNotifications"
+                        Width="40"
+                        Height="40"
+                        Margin="0,0,12,0"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="BtnNotifications_Click"
+                        ToolTip="Bildirishnomalar">
+                        <Grid>
+                            <md:PackIcon 
+                                Kind="Bell" 
+                                Width="24" 
+                                Height="24" 
+                                Foreground="White" 
+                                VerticalAlignment="Center" 
+                                HorizontalAlignment="Center"/>
+                            <!-- Badge for notification count -->
+                            <Border
+                                x:Name="notificationBadge"
+                                Width="18"
+                                Height="18"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Background="#FFE53935"
+                                CornerRadius="9"
+                                Visibility="Collapsed">
+                                <TextBlock
+                                    x:Name="notificationCount"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="10"
+                                    FontWeight="Bold"
+                                    Foreground="White"
+                                    Text="3" />
+                            </Border>
+                        </Grid>
+                    </Button>
 
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border x:Name="pnlProfileMenu"
-                                Visibility="Collapsed"
-                                Background="White"
-                                CornerRadius="10"
-                                Margin="0,0,8,0"
-                                Padding="5,2"
-                                md:ElevationAssist.Elevation="Dp16">
-                            <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource MaterialDesignIconButton}"
-                                        Width="30" Height="30" Padding="0"
-                                        Click="BtnChangePhoto_Click"
-                                        ToolTip="Rasmni almashtirish">
-                                    <md:PackIcon Kind="DotsHorizontal" Foreground="#FF4FC3F7" Width="22" Height="22"/>
-                                </Button>
+                    <!-- User Profile Section -->
+                    <Button
+                        x:Name="btnUserProfile"
+                        Padding="8 0"
+                        Background="#3FFFFFFF"
+                        Height="45"
+                        BorderThickness="0"
+                        md:ButtonAssist.CornerRadius="10"
+                        Click="BtnUserProfile_Click"
+                        Cursor="Hand">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- User Avatar -->
+                            <Ellipse
+                                Width="35"
+                                Height="35"
+                                Stroke="White"
+                                StrokeThickness="2">
+                                <Ellipse.Fill>
+                                    <ImageBrush 
+                                        x:Name="imgUserAvatar" 
+                                        ImageSource="/Resources/Assets/profile.jpg" 
+                                        Stretch="UniformToFill"/>
+                                </Ellipse.Fill>
+                            </Ellipse>
 
-                                <Separator Style="{StaticResource MaterialDesignDarkSeparator}"
-                                           Margin="4,5" />
+                            <!-- User Name -->
+                            <TextBlock
+                                Margin="10,0,8,0"
+                                VerticalAlignment="Center"
+                                FontSize="15"
+                                FontWeight="SemiBold"
+                                Foreground="White"
+                                Text="{Binding FullName}" />
 
-                                <PasswordBox x:Name="txtNewPassword"
-                                             Width="110"
-                                             Height="25"
-                                             Padding="3 0"
-                                             BorderThickness="1"
-                                             BorderBrush="Gray"
-                                             FontSize="13"
-                                             md:HintAssist.Hint="Yangi parol"
-                                             Style="{StaticResource MaterialDesignRevealPasswordBox}"
-                                             VerticalContentAlignment="Center"/>
+                            <!-- Dropdown Icon -->
+                            <md:PackIcon
+                                x:Name="dropdownIcon"
+                                Kind="ChevronDown"
+                                Width="20"
+                                Height="20"
+                                VerticalAlignment="Center"
+                                Foreground="White">
+                                <md:PackIcon.RenderTransform>
+                                    <RotateTransform x:Name="dropdownRotation" Angle="0" CenterX="10" CenterY="10"/>
+                                </md:PackIcon.RenderTransform>
+                            </md:PackIcon>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
 
-                                <Button Content="OK"
-                                        Margin="5,0,0,0"
-                                        Padding="8,0" Height="28"
-                                        Click="BtnSavePassword_Click"
-                                        Style="{StaticResource  MaterialDesignFlatDarkBgButton}"/>
-                            </StackPanel>
+        <!-- User Profile Dropdown Popup -->
+        <Popup
+            x:Name="userProfilePopup"
+            PlacementTarget="{Binding ElementName=btnUserProfile}"
+            Placement="Bottom"
+            StaysOpen="False"
+            AllowsTransparency="True"
+            PopupAnimation="Fade">
+            <Border
+                MinWidth="220"
+                Margin="10"
+                Background="White"
+                BorderBrush="#FFE0E0E0"
+                BorderThickness="1"
+                CornerRadius="10"
+                md:ElevationAssist.Elevation="Dp16">
+                <StackPanel Margin="0,8">
+                    <!-- User Info Header -->
+                    <StackPanel Margin="16,8,16,12" Orientation="Horizontal">
+                        <Border
+                            Width="45"
+                            Height="45"
+                            CornerRadius="22.5"
+                            BorderBrush="#FF4FC3F7"
+                            BorderThickness="2">
+                            <Border.Background>
+                                <ImageBrush ImageSource="{Binding ElementName=imgUserAvatar, Path=ImageSource}" Stretch="UniformToFill"/>
+                            </Border.Background>
                         </Border>
-
-                        <Button x:Name="btnProfile" Click="BtnProfile_Click" Padding="0" Background="Transparent" BorderThickness="0">
-                            <Grid>
-                                <Ellipse Width="35" Height="32" Stroke="White" StrokeThickness="0">
-                                    <Ellipse.Fill>
-                                        <ImageBrush x:Name="imgProfile" ImageSource="/Resources/Assets/profile.jpg" Stretch="UniformToFill"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                            </Grid>
-                        </Button>
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Foreground="#FF212121"
+                                Text="{Binding FullName}" />
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="#FF757575"
+                                Text="{Binding Username}"
+                                Margin="0,2,0,0" />
+                        </StackPanel>
                     </StackPanel>
 
+                    <Separator Margin="8,0" Background="#FFE0E0E0" />
+
+                    <!-- Menu Items -->
                     <Button
-                        Margin="8,0"
-                        Padding="6,2"
-                        md:ButtonAssist.CornerRadius="6"
-                        Background="Snow"
+                        x:Name="btnEditProfile"
+                        Height="40"
+                        Padding="16,0"
+                        HorizontalContentAlignment="Left"
+                        Background="Transparent"
                         BorderThickness="0"
-                        Click="BtnOverdue_Click"
-                        ToolTip="Mijozlar qarzini to'lash muddatidan kechikayotganligi to'g'risida ogohlantirish!">
-                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock
-                                x:Name="tbWarning"
-                                FontSize="20"
-                                Foreground="Red"
-                                Text="🚨" />
+                        Click="BtnEditProfile_Click"
+                        Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#FFF5F5F5" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <md:PackIcon Kind="AccountEdit" Width="20" Height="20" Foreground="#FF4FC3F7" VerticalAlignment="Center" />
+                            <TextBlock Margin="12,0,0,0" FontSize="14" Foreground="#FF212121" Text="Profilni tahrirlash" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
 
                     <Button
-                        Padding="6,2"
-                        md:ButtonAssist.CornerRadius="6"
-                        Background="#FF1565C0"
+                        x:Name="btnAccountSettings"
+                        Height="40"
+                        Padding="16,0"
+                        HorizontalContentAlignment="Left"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="BtnAccountSettings_Click"
+                        Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#FFF5F5F5" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <md:PackIcon Kind="Settings" Width="20" Height="20" Foreground="#FF757575" VerticalAlignment="Center" />
+                            <TextBlock Margin="12,0,0,0" FontSize="14" Foreground="#FF212121" Text="Sozlamalar" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Margin="8,4" Background="#FFE0E0E0" />
+
+                    <Button
+                        x:Name="btnLogoutMenu"
+                        Height="40"
+                        Padding="16,0"
+                        HorizontalContentAlignment="Left"
+                        Background="Transparent"
                         BorderThickness="0"
                         Click="BtnLogout_Click"
-                        Content="🔚"
-                        FontSize="20"
-                        FontWeight="SemiBold"
-                        Foreground="White"
-                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolToBoolConverter}}"
-                        ToolTip="Chiqish" />
-
+                        Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#FFFFE5E5" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <md:PackIcon Kind="Logout" Width="20" Height="20" Foreground="#FFD32F2F" VerticalAlignment="Center" />
+                            <TextBlock Margin="12,0,0,0" FontSize="14" Foreground="#FFD32F2F" Text="Chiqish" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
-            </Grid>
-        </Border>
+            </Border>
+        </Popup>
+
+        <!-- Overdue Warning (kept from original) -->
+        <Popup
+            x:Name="overdueWarningPopup"
+            PlacementTarget="{Binding ElementName=btnNotifications}"
+            Placement="Bottom"
+            StaysOpen="False"
+            AllowsTransparency="True"
+            Visibility="Collapsed">
+            <Border
+                Background="White"
+                BorderBrush="#FFE0E0E0"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="12"
+                md:ElevationAssist.Elevation="Dp8">
+                <TextBlock Text="Qarz to'lash muddati o'tgan mijozlar bor!" Foreground="#FFD32F2F" />
+            </Border>
+        </Popup>
 
 
         <WrapPanel Margin="35,20">
@@ -282,5 +430,211 @@
 
 
         </WrapPanel>
-    </StackPanel>
+        </StackPanel>
+
+        <!-- Profile Edit Modal Overlay -->
+        <Grid x:Name="profileEditOverlay" Background="#CC000000" Visibility="Collapsed">
+            <Border
+                Width="550"
+                Height="620"
+                Background="{DynamicResource PrimaryBackground}"
+                CornerRadius="16"
+                md:ElevationAssist.Elevation="Dp24"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+                <Grid Margin="30">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                        <TextBlock
+                            Text="👤 Profil sozlamalari"
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Foreground="{StaticResource SecondaryTextColor}"
+                            HorizontalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Content -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <!-- Avatar Section with Hover Effect -->
+                            <Border
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,25"
+                                Padding="20"
+                                Background="White"
+                                CornerRadius="15"
+                                md:ElevationAssist.Elevation="Dp4">
+                                <Grid Width="120" Height="120">
+                                    <Ellipse
+                                        Width="120"
+                                        Height="120"
+                                        Stroke="#FF4FC3F7"
+                                        StrokeThickness="3"
+                                        md:ElevationAssist.Elevation="Dp8"
+                                        Cursor="Hand"
+                                        MouseLeftButtonDown="Avatar_Click">
+                                        <Ellipse.Fill>
+                                            <ImageBrush 
+                                                x:Name="imgProfilePreview" 
+                                                ImageSource="/Resources/Assets/profile.jpg" 
+                                                Stretch="UniformToFill"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+
+                                    <!-- Hover Overlay -->
+                                    <Grid x:Name="avatarOverlay" Background="Transparent" IsHitTestVisible="False">
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Ellipse}}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+
+                                        <!-- Semi-transparent dark overlay -->
+                                        <Ellipse Fill="#99000000" />
+                                        <StackPanel 
+                                            VerticalAlignment="Center" 
+                                            HorizontalAlignment="Center"
+                                            Margin="0,30,0,0">
+                                            <md:PackIcon 
+                                                Kind="Camera" 
+                                                Width="28" 
+                                                Height="28" 
+                                                Foreground="White" 
+                                                HorizontalAlignment="Center"/>
+                                            <TextBlock 
+                                                Text="Rasm yuklash" 
+                                                FontSize="12" 
+                                                Foreground="White" 
+                                                HorizontalAlignment="Center"
+                                                Margin="0,6,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+
+                            <!-- Profile Fields -->
+                            <Border
+                                Background="White"
+                                CornerRadius="12"
+                                Padding="20"
+                                md:ElevationAssist.Elevation="Dp4">
+                                <StackPanel>
+                                    <!-- Full Name -->
+                                    <controls:FloatingInput
+                                        x:Name="tbxFullName"
+                                        Margin="0,0,0,15"
+                                        Label="Ism va Familiya"
+                                        Text="{Binding FullName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <!-- Username (Read-only) -->
+                                    <controls:FloatingInput
+                                        x:Name="tbxUsername"
+                                        Margin="0,0,0,15"
+                                        Label="Login (o'zgartirib bo'lmaydi)"
+                                        IsReadOnly="True"
+                                        Text="{Binding Username, Mode=OneWay}" />
+
+                                    <!-- Phone -->
+                                    <controls:FloatingInput
+                                        x:Name="tbxPhone"
+                                        Margin="0,0,0,15"
+                                        Label="Telefon"
+                                        Text="{Binding Phone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <!-- Email -->
+                                    <controls:FloatingInput
+                                        x:Name="tbxEmail"
+                                        Margin="0,0,0,15"
+                                        Label="Email"
+                                        Text="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <!-- Address -->
+                                    <controls:FloatingInput
+                                        x:Name="tbxAddress"
+                                        Margin="0,0,0,15"
+                                        Label="Manzil"
+                                        Text="{Binding Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <Separator Margin="0,10,0,15" Background="#FFE0E0E0" />
+
+                                    <!-- Password Section -->
+                                    <TextBlock
+                                        Text="Parolni o'zgartirish"
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        Foreground="#FF757575"
+                                        Margin="0,0,0,10" />
+
+                                    <PasswordBox
+                                        x:Name="pwdNewPassword"
+                                        Margin="0,0,0,10"
+                                        md:HintAssist.Hint="Yangi parol (ixtiyoriy)"
+                                        md:TextFieldAssist.HasClearButton="True"
+                                        Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}" />
+
+                                    <PasswordBox
+                                        x:Name="pwdConfirmPassword"
+                                        Margin="0,0,0,5"
+                                        md:HintAssist.Hint="Parolni tasdiqlash"
+                                        md:TextFieldAssist.HasClearButton="True"
+                                        Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Action Buttons -->
+                    <StackPanel
+                        Grid.Row="2"
+                        Margin="0,20,0,0"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal">
+                        <Button
+                            x:Name="btnSaveProfile"
+                            Width="140"
+                            Padding="12,10"
+                            Margin="0,0,10,0"
+                            md:ButtonAssist.CornerRadius="8"
+                            Background="#FF4CAF50"
+                            Foreground="White"
+                            FontSize="15"
+                            FontWeight="SemiBold"
+                            Click="BtnSaveProfile_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <md:PackIcon Kind="ContentSave" Width="20" Height="20" VerticalAlignment="Center" />
+                                <TextBlock Margin="8,0,0,0" Text="Saqlash" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button
+                            x:Name="btnCloseModal"
+                            Width="140"
+                            Padding="12,10"
+                            md:ButtonAssist.CornerRadius="8"
+                            Background="#FF757575"
+                            Foreground="White"
+                            FontSize="15"
+                            FontWeight="SemiBold"
+                            Click="BtnCloseModal_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <md:PackIcon Kind="Close" Width="20" Height="20" VerticalAlignment="Center" />
+                                <TextBlock Margin="8,0,0,0" Text="Bekor qilish" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
 </Page>
