@@ -9,5 +9,5 @@ public class ProductResiduesController : BaseController
 {
     [HttpPost("filter")]
     public async Task<IActionResult> GetFiltered(ProductResidueFilterQuery query)
-        => Ok(new Response { Data = await Mediator.Send(query) });
+        => Ok(new Response { Data = await Mediator.Send(query, Ct) });
 }

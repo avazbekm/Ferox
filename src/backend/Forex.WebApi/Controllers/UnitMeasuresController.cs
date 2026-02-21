@@ -17,5 +17,5 @@ public class UnitMeasuresController
 {
     [HttpPut("all")]
     public async Task<IActionResult> UpdateAll(List<UnitMeasureCommand> items)
-        => Ok(new Response { Data = await Mediator.Send(new UpdateAllUnitMeasuresCommand(items)) });
+        => Ok(new Response { Data = await Mediator.Send(new UpdateAllUnitMeasuresCommand(items), Ct) });
 }

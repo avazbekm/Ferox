@@ -87,7 +87,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
         BeginBalance = data.BeginBalance;
         LastBalance = data.EndBalance;
 
-        foreach (var op in data.OperationRecords.OrderBy(o => o.Date)) 
+        foreach (var op in data.OperationRecords.OrderBy(o => o.Date))
         {
             decimal debit = 0;
             decimal credit = 0;
@@ -100,7 +100,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
             // TO‘LOV → Transaction bo‘lsa → IsIncome ga qarab, bo‘lmasa Amount ga qarab
             else if (op.Type == ClientService.Enums.OperationType.Transaction)
             {
-                if (op.Transaction != null)
+                if (op.Transaction is not null)
                 {
                     credit = op.Transaction.IsIncome == true ? op.Amount : 0;
                     debit = op.Transaction.IsIncome == false ? Math.Abs(op.Amount) : 0;
@@ -132,7 +132,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
     private async Task OnTabSelectedAsync()
     {
         // Agar mijoz tanlangan bo'lsa va ma'lumotlar hali yuklanmagan bo'lsa (yoki yangilash kerak bo'lsa)
-        if (SelectedCustomer != null)
+        if (SelectedCustomer is not null)
         {
             await LoadDataAsync();
         }
@@ -320,7 +320,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
         {
             try
             {
-                if (SelectedCustomer == null) return;
+                if (SelectedCustomer is null) return;
 
                 string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 string folder = Path.Combine(docs, "Forex");
@@ -405,7 +405,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
             // 1. HEADER (Sarlavha, Mijoz, Davr)
             if (isFirstPage)
             {
-                container.Children.Add(CreateTitleAndInfo(SelectedCustomer?.Name, BeginDate, EndDate));
+                container.Children.Add(CreateTitleAndInfo(SelectedCustomer?.Name!, BeginDate, EndDate));
                 currentY += initialHeaderHeight;
             }
 
@@ -477,47 +477,30 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
                 rowsAddedOnPage++;
             }
 
-            // 4. Jami va Oxirgi Qoldiq (Faqat oxirgi sahifada)
             bool isLastPage = (currentIndex >= allOperations.Count);
 
-            // Ma'lumot tsikli tugagan bo'lsa (yoki birinchi sahifada ma'lumot bo'lmasa)
             if (isLastPage)
             {
-                // JAMI
-                // Endi biz JAMI qatori uchun joy borligini avvaldan ta'minladik, shuning uchun shartsiz qo'shamiz
                 var totalGrid = CreateRow(finalColWidths, true, "JAMI",
                     totalDebit > 0 ? totalDebit.ToString("N0") : "",
                     totalCredit > 0 ? totalCredit.ToString("N0") : "",
                     "");
                 container.Children.Add(totalGrid);
 
-                // Oxirgi Qoldiq
-                // Oldingi JAMI qator qo'shilgani va yetarli joy borligi uchun, buni ham shartsiz qo'shamiz
                 var lastBalanceGrid = CreateBalanceRow(finalColWidths, "Oxirgi qoldiq", LastBalance.ToString("N2"));
                 container.Children.Add(lastBalanceGrid);
             }
 
-            // Agar birinchi sahifada ma'lumot bo'lmasa (allOperations.Count == 0), uni ham qoldiqlar bilan saqlashimiz kerak.
             if (allOperations.Count == 0 && isFirstPage)
             {
-                // 0 operatsiya bo'lsa, Jami 0, Oxirgi qoldiq = Boshlang'ich qoldiq bo'ladi.
-
-                // JAMI 0
                 var totalGrid = CreateRow(finalColWidths, true, "JAMI", "", "", "");
                 container.Children.Add(totalGrid);
 
-                // Oxirgi Qoldiq (Boshlang'ich qoldiqqa teng)
                 var lastBalanceGrid = CreateBalanceRow(finalColWidths, "Oxirgi qoldiq", BeginBalance.ToString("N2"));
                 container.Children.Add(lastBalanceGrid);
             }
 
-
-            // Sahifani qo'shish va Footer mantiqlari
             page.Children.Add(container);
-
-            // Footer elementlari (Endi AddPageFooter emas, UpdatePageFooter ishlatiladi)
-            // AddPageFooter bu joyda ishlatilmasligi kerak, UpdatePageFooter tsikldan keyin ishlaydi
-            // AddPageFooter(page, pageNumber, 0); // Bu qatorni o'chiramiz/izohlaymiz
 
             var pc = new PageContent();
             ((IAddChild)pc).AddChild(page);
@@ -534,7 +517,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
         for (int i = 0; i < totalPages; i++)
         {
             var p = (FixedPage)((PageContent)doc.Pages[i]).GetPageRoot(false);
-            if (p != null)
+            if (p is not null)
             {
                 UpdatePageFooter(p, i + 1, totalPages);
             }
@@ -582,7 +565,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
 
         // Avvalgi PageInfo elementini topishga harakat qilish (agar bor bo'lsa)
         // FixedPage.Children ni aylanib chiqish va topish.
-        TextBlock existingPageInfo = null;
+        TextBlock existingPageInfo = null!;
         foreach (var child in page.Children.OfType<TextBlock>())
         {
             // FixedPage.SetRight/SetBottom orqali joylashganligini tekshirishning ishonchli usuli yo'q,
@@ -594,7 +577,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
             }
         }
 
-        if (existingPageInfo != null)
+        if (existingPageInfo is not null)
         {
             page.Children.Remove(existingPageInfo);
         }
@@ -748,7 +731,7 @@ public partial class CustomerTurnoverReportViewModel : ViewModelBase
             foreach (var pageContent in doc.Pages)
             {
                 var fixedPage = pageContent.GetPageRoot(false);
-                if (fixedPage == null) continue;
+                if (fixedPage is null) continue;
 
                 // 1. FixedPage Layout-ni yangilash
                 // O'lchash (Measure) va joylashtirish (Arrange) orqali UI elementlarining haqiqiy o'lchamlarini olish

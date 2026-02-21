@@ -70,6 +70,7 @@ public partial class SalePage : Page
         // 3. Metodni to'g'ridan-to'g'ri chaqiramiz (chunki u endi public)
         printVm.ShowPrintPreview();
     }
+
     private async void BtnEditSale_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button || button.Tag is not SaleViewModel sale)

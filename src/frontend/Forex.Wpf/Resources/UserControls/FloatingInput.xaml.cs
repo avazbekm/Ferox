@@ -10,31 +10,12 @@ public partial class FloatingInput : UserControl
         InitializeComponent();
     }
 
-    // Label property
-    public static readonly DependencyProperty LabelProperty =
-        DependencyProperty.Register(
-            nameof(Label),
-            typeof(string),
-            typeof(FloatingInput),
-            new PropertyMetadata(""));
+    public static readonly DependencyProperty LabelProperty = DependencyProperty.Register(nameof(Label), typeof(string), typeof(FloatingInput), new PropertyMetadata(""));
+    public string Label { get => (string)GetValue(LabelProperty); set => SetValue(LabelProperty, value); }
 
-    public string Label
-    {
-        get => (string)GetValue(LabelProperty);
-        set => SetValue(LabelProperty, value);
-    }
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register(nameof(Text), typeof(object), typeof(FloatingInput), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+    public object? Text { get => GetValue(TextProperty); set => SetValue(TextProperty, value); }
 
-    // Text property (universal object type)
-    public static readonly DependencyProperty TextProperty =
-        DependencyProperty.Register(
-            nameof(Text),
-            typeof(object),
-            typeof(FloatingInput),
-            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
-
-    public object? Text
-    {
-        get => GetValue(TextProperty);
-        set => SetValue(TextProperty, value);
-    }
+    public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(FloatingInput), new PropertyMetadata(false));
+    public bool IsReadOnly { get => (bool)GetValue(IsReadOnlyProperty); set => SetValue(IsReadOnlyProperty, value); }
 }

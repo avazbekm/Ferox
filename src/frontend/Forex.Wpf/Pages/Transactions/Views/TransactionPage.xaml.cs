@@ -25,6 +25,7 @@ public partial class TransactionPage : Page
 
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
+        this.ResizeWindow(1100, 750);
         RegisterFocusNavigation();
         RegisterGlobalShortcuts();
     }
@@ -53,9 +54,18 @@ public partial class TransactionPage : Page
     {
         FocusNavigator.RegisterElements(
         [
+            cbUser,
+            cbCurrency,
             tbKirim,
-            tbChiqim
+            cbPaymentMethod,
+            tbChiqim,
+            tbExchangeRate,
+            tbDiscount,
+            tbDescription,
+            btnSubmit,
+            btnCancel
         ]);
+        FocusNavigator.SetFocusRedirect(btnSubmit, cbUser);
     }
 
     private void NumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)

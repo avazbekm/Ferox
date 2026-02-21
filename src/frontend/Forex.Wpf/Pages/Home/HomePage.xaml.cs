@@ -1,7 +1,6 @@
 ﻿namespace Forex.Wpf.Pages.Home;
 
 using Forex.ClientService;
-using Forex.ClientService.Models.Requests;
 using Forex.ClientService.Services;
 using Forex.Wpf.Common.Services;
 using Forex.Wpf.Pages.Auth;
@@ -15,59 +14,42 @@ using Forex.Wpf.Pages.Transactions.Views;
 using Forex.Wpf.Pages.Users;
 using Forex.Wpf.Windows;
 using Forex.Wpf.Windows.OverdueAccountsWindow;
+using Forex.Wpf.Windows.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 
-/// <summary>
-/// Interaction logic for HomePage.xaml
-/// </summary>
 public partial class HomePage : Page
 {
     private static MainWindow Main => (MainWindow)Application.Current.MainWindow;
     private readonly ForexClient client = App.AppHost!.Services.GetRequiredService<ForexClient>();
 
+    public ProfileEditViewModel ProfileViewModel { get; }
+
     public HomePage()
     {
         InitializeComponent();
-        DataContext = AuthStore.Instance;
+        ProfileViewModel = new ProfileEditViewModel(client);
+
+        // Main content needs AuthStore for navbar bindings
+        mainContent.DataContext = AuthStore.Instance;
+
+        // Profile modal needs ProfileViewModel
+        profileEditOverlay.DataContext = ProfileViewModel;
 
         Loaded += Page_Loaded;
     }
 
-    private void Page_Loaded(object sender, RoutedEventArgs e)
+    private async void Page_Loaded(object sender, RoutedEventArgs e)
     {
         this.ResizeWindow(810, 580);
         RegisterFocusNavigation();
         RegisterGlobalShortcuts();
-
-        //var userAccountService = App.AppHost!.Services.GetRequiredService<IApiUserAccount>();
-        //var allAccountsResult = await userAccountService.GetAllAsync();
-
-        //if (allAccountsResult.Data == null)
-        //{
-        //    if (Application.Current.MainWindow is Window defaultWindow)
-        //        defaultWindow.Background = Brushes.Green;
-        //    return;
-        //}
-
-        //var filteredData = allAccountsResult.Data
-        //   //.Where(a =>
-        //   //    a.DueDate.HasValue &&
-        //   //    a.DueDate.Value.Date <= DateTime.Today)
-        //   .ToList();
-
-        //if (filteredData.Count > 0)
-        //{
-        //    tbWarning.Foreground = Brushes.Red;
-        //}
-        //else
-        //{
-        //    tbWarning.Foreground = Brushes.Green;
-        //}
+        await LoadUserAvatar();
     }
 
     private void RegisterGlobalShortcuts()
@@ -131,108 +113,114 @@ public partial class HomePage : Page
         window.ShowDialog();
     }
 
-
-    // Profilni bosganda menyuni chiqarish
-    private void BtnProfile_Click(object sender, RoutedEventArgs e)
+    private void BtnUserProfile_Click(object sender, RoutedEventArgs e)
     {
-        if (pnlProfileMenu.Visibility == Visibility.Collapsed)
-        {
-            pnlProfileMenu.Visibility = Visibility.Visible;
+        userProfilePopup.IsOpen = !userProfilePopup.IsOpen;
 
-            // Oddiygina paydo bo'lish animatsiyasi
-            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.2));
-            pnlProfileMenu.BeginAnimation(OpacityProperty, fadeIn);
-        }
-        else
-        {
-            pnlProfileMenu.Visibility = Visibility.Collapsed;
-        }
+        var rotation = new DoubleAnimation(
+            userProfilePopup.IsOpen ? 180 : 0,
+            TimeSpan.FromSeconds(0.2));
+        dropdownRotation.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, rotation);
     }
 
-    // 3 ta nuqta bosilganda rasm tanlash logic
-    private void BtnChangePhoto_Click(object sender, RoutedEventArgs e)
+    private async void BtnEditProfile_Click(object sender, RoutedEventArgs e)
     {
-        var openFileDialog = new Microsoft.Win32.OpenFileDialog
-        {
-            Filter = "Rasm fayllari (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png"
-        };
+        userProfilePopup.IsOpen = false;
 
-        if (openFileDialog.ShowDialog() == true)
-        {
-            imgProfile.ImageSource = new BitmapImage(new Uri(openFileDialog.FileName));
-            // Bu yerda rasmni serverga yuborish kodingiz bo'ladi
-        }
+        // Load user data
+        await ProfileViewModel.LoadUserDataAsync();
+
+        // Show modal overlay
+        profileEditOverlay.Visibility = Visibility.Visible;
+        mainContent.IsEnabled = false;
     }
 
-    // OK bosilganda parolni saqlash
-    private async void BtnSavePassword_Click(object sender, RoutedEventArgs e)
+    private void BtnAccountSettings_Click(object sender, RoutedEventArgs e)
     {
-        var newPassword = txtNewPassword.Password;
+        userProfilePopup.IsOpen = false;
+        Main.NavigateTo(new SettingsPage());
+    }
 
-        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 4)
-        {
-            MessageBox.Show("Parol juda qisqa!", "Xato", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
+    private void BtnNotifications_Click(object sender, RoutedEventArgs e)
+    {
+        BtnOverdue_Click(sender, e);
+    }
 
-        pnlProfileMenu.IsEnabled = false;
-
+    private async Task LoadUserAvatar()
+    {
         try
         {
-            // 1. Foydalanuvchi ma'lumotlarini to'liq olib kelamiz
             var userResponse = await client.Users.GetById(AuthStore.Instance.UserId);
-
-            if (userResponse?.Data != null)
+            if (userResponse?.Data?.ProfileImageUrl != null && !string.IsNullOrEmpty(userResponse.Data.ProfileImageUrl))
             {
-                var u = userResponse.Data;
-
-                // 2. UserRequest obyektini server talab qilganidek to'liq to'ldiramiz
-                var updateRequest = new UserRequest
-                {
-                    Id = u.Id,
-                    Name = u.Name, // Modelda Name majburiy bo'lishi mumkin
-                    //UserName = u.UserName,
-                    Phone = u.Phone,
-                    Email = u.Email,
-                    Role = u.Role,
-                    Address = u.Address,
-                    Description = u.Description,
-                    Password = newPassword, // Yangi parol
-
-                    // MUHIM: Server Accounts'ni talab qilgani uchun eskilarini qaytarib jo'natamiz
-                    Accounts = u.Accounts?.Select(a => new UserAccount
-                    {
-                    }).ToList() ?? new List<UserAccount>()
-                };
-
-                // 3. Update so'rovi
-                var result = await client.Users.Update(updateRequest);
-
-                if (result.Data)
-                {
-                    MessageBox.Show("Parol muvaffaqiyatli yangilandi!", "Muvaffaqiyat");
-                    txtNewPassword.Password = "";
-                    pnlProfileMenu.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    MessageBox.Show($"Xatolik: {result.Message}", "Xato");
-                }
+                var fullUrl = client.FileStorage.GetFullUrl(userResponse.Data.ProfileImageUrl);
+                var bitmap = new BitmapImage(new Uri(fullUrl));
+                imgUserAvatar.ImageSource = bitmap;
+                imgProfilePreview.ImageSource = bitmap;
             }
         }
-        catch (Refit.ApiException ex)
+        catch
         {
-            // Agar hali ham xato bersa, serverdan kelgan aniq JSON xatolikni ko'ramiz
-            var errorContent = ex.Content;
-            MessageBox.Show($"Server rad etdi:\n{errorContent}", "Validatsiya xatosi");
+            // Keep default avatar on error
         }
-        catch (Exception ex)
+    }
+
+    private async void Avatar_Click(object sender, MouseButtonEventArgs e)
+    {
+        var dialog = new OpenFileDialog
         {
-            MessageBox.Show($"Tizim xatosi: {ex.Message}");
-        }
-        finally
+            Filter = "Rasm fayllari (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png",
+            Title = "Profil rasmini tanlang"
+        };
+
+        if (dialog.ShowDialog() == true)
         {
-            pnlProfileMenu.IsEnabled = true;
+            try
+            {
+                var objectKey = await client.FileStorage.UploadFileAsync(dialog.FileName);
+                if (objectKey != null)
+                {
+                    ProfileViewModel.TmpImagePath = objectKey;
+                    imgProfilePreview.ImageSource = new BitmapImage(new Uri(dialog.FileName));
+                }
+            }
+            catch (Exception ex)
+            {
+                ProfileViewModel.ErrorMessage = $"Rasm yuklashda xatolik: {ex.Message}";
+            }
         }
+    }
+
+    private async void BtnSaveProfile_Click(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(pwdNewPassword.Password))
+        {
+            if (pwdNewPassword.Password != pwdConfirmPassword.Password)
+            {
+                ProfileViewModel.ErrorMessage = "Parollar mos kelmadi!";
+                return;
+            }
+            ProfileViewModel.NewPassword = pwdNewPassword.Password;
+        }
+
+        var success = await ProfileViewModel.SaveAsync();
+
+        if (success)
+        {
+            ProfileViewModel.SuccessMessage = "Ma'lumotlar muvaffaqiyatli saqlandi!";
+            await LoadUserAvatar();
+
+            await Task.Delay(1500);
+            BtnCloseModal_Click(sender, e);
+        }
+    }
+
+    private void BtnCloseModal_Click(object sender, RoutedEventArgs e)
+    {
+        profileEditOverlay.Visibility = Visibility.Collapsed;
+        mainContent.IsEnabled = true;
+
+        pwdNewPassword.Clear();
+        pwdConfirmPassword.Clear();
     }
 }

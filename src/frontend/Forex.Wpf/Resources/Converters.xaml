@@ -8,17 +8,17 @@
     <conv:StringIsNotEmptyConverter x:Key="StringIsNotEmptyConverter" />
     <conv:InverseBoolToBoolConverter x:Key="InverseBoolToBoolConverter" />
     <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
-    <conv:IntToStringConverter x:Key="IntToStringConverter" />
-    <conv:ImageFallbackConverter x:Key="ImageFallbackConverter" />
-    <conv:ToStringConverter x:Key="ToStringConverter" />
+	<conv:ToStringConverter x:Key="ToStringConverter" />
     <conv:NullToBoolConverter x:Key="NullToBoolConverter" />
+    <conv:NumberToBoolConverter x:Key="NumberToBoolConverter" />
     <conv:RowNumberConverter x:Key="RowNumber" />
     <conv:NullToVisibilityConverter x:Key="NullToVisibility" />
     <conv:InverseNullToVisibilityConverter x:Key="InverseNullToVisibility" />
     <conv:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
     <conv:BalanceToColorConverter x:Key="BalanceToColorConverter" />
     <conv:IsNotNewRowConverter x:Key="IsNotNewRowConverter" />
-    <conv:ArrayMultiValueConverter x:Key="ArrayMultiValueConverter" />
-    <conv:IndexConverter x:Key="IndexConverter" />
+	<conv:ArrayMultiValueConverter x:Key="ArrayMultiValueConverter" />
+	<conv:IndexConverter x:Key="IndexConverter" />
+	<conv:UniversalImageResolver x:Key="UniversalImageResolver" />
 
 </ResourceDictionary>

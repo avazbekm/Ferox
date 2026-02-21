@@ -1,21 +1,46 @@
 ﻿namespace Forex.Application.Features.Products.ProductEntries.Commands;
 
-using Forex.Application.Commons.Exceptions;
-using Forex.Application.Commons.Extensions;
-using Forex.Application.Commons.Interfaces;
+using Forex.Application.Common.Exceptions;
+using Forex.Application.Common.Extensions;
+using Forex.Application.Common.Interfaces;
+using Forex.Application.Features.Products.Products.Commands;
 using Forex.Domain.Entities;
 using Forex.Domain.Entities.Products;
+using Forex.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-public record CreateProductEntryCommand(List<ProductEntryCommand> Command) : IRequest<long>;
+public class CreateProductEntryCommand : IRequest<long>
+{
+    public DateTime Date { get; set; }
+    public int Count { get; set; }
+    public int BundleItemCount { get; set; }
+    public decimal PreparationCostPerUnit { get; set; }
+    public decimal UnitPrice { get; set; }
+    public ProductionOrigin ProductionOrigin { get; set; }
+    public ProductCommand Product { get; set; } = default!;
+}
 
 public class CreateProductEntryCommandHandler(
-    IAppDbContext context)
+    IAppDbContext context,
+    IFileStorageService fileStorage)
     : IRequestHandler<CreateProductEntryCommand, long>
 {
     public async Task<long> Handle(CreateProductEntryCommand request, CancellationToken cancellationToken)
     {
+        // ✅ VALIDATSIYA: Majburiy qiymatlarni tekshirish
+        if (request.Count <= 0)
+            throw new AppException("Mahsulot miqdori (Count) 0 dan katta bo'lishi shart!");
+
+        if (request.BundleItemCount <= 0)
+            throw new AppException("Qopdagi dona soni (BundleItemCount) 0 dan katta bo'lishi shart!");
+
+        if (request.UnitPrice <= 0)
+            throw new AppException("Birlik narxi (UnitPrice) 0 dan katta bo'lishi shart!");
+
+        if (request.PreparationCostPerUnit < 0)
+            throw new AppException("Tayyorlanish narxi manfiy bo'lishi mumkin emas!");
+
         await context.BeginTransactionAsync(cancellationToken);
 
         try
@@ -24,48 +49,25 @@ public class CreateProductEntryCommandHandler(
             var defaultUnitMeasure = await GetOrCreateDefaultUnitMeasureAsync(cancellationToken);
             var defaultCurrency = await GetOrCreateDefaultCurrencyAsync(cancellationToken);
 
-            // Product Code bo'yicha guruhlash
-            var groupedByProduct = request.Command
-                .GroupBy(cmd => cmd.Product.Code)
-                .ToList();
+            var product = await GetOrCreateProductAsync(request, defaultUnitMeasure, cancellationToken);
 
-            foreach (var productGroup in groupedByProduct)
-            {
-                // Birinchi elementdan Product ma'lumotlarini olish
-                var firstCommand = productGroup.First();
+            var productType = await GetOrCreateProductTypeAsync(request, product, defaultCurrency, cancellationToken);
 
-                // Product ni olish yoki yaratish (bir marta)
-                var product = await GetOrCreateProductAsync(firstCommand, defaultUnitMeasure, cancellationToken);
+            productType.BundleItemCount = request.BundleItemCount;
+            productType.UnitPrice = request.UnitPrice;
 
-                // Har bir ProductType uchun (har bir entry aslida bitta ProductType)
-                foreach (var item in productGroup)
-                {
-                    // ProductType ni olish yoki yaratish
-                    var productType = await GetOrCreateProductTypeAsync(item, product, defaultCurrency, cancellationToken);
+            product.ProductionOrigin = request.ProductionOrigin;
 
-                    // BundleItemCount va UnitPrice ni yangilash
-                    productType.BundleItemCount = item.BundleItemCount;
-                    productType.UnitPrice = item.UnitPrice;
+            await TryDeductFromInProcessAsync(productType, request.Count, cancellationToken);
 
-                    // ProductionOrigin ni yangilash
-                    product.ProductionOrigin = item.ProductionOrigin;
+            var residue = await UpdateProductResidueAsync(productType, request.Count, shop, cancellationToken);
 
-                    // InProcess dan ayirish (agar mavjud bo'lsa)
-                    await TryDeductFromInProcessAsync(productType, item.Count, cancellationToken);
+            var costPrice = CalculateCostPrice(productType);
 
-                    // ProductResidue ni yangilash
-                    var residue = await UpdateProductResidueAsync(productType, item.Count, shop, cancellationToken);
-
-                    // CostPrice ni hisoblash
-                    var costPrice = CalculateCostPrice(productType);
-
-                    // ProductEntry ni saqlash
-                    SaveProductEntry(item, productType, shop, residue, costPrice, defaultCurrency);
-                }
-            }
+            var entry = SaveProductEntry(request, productType, shop, residue, costPrice, defaultCurrency);
 
             await context.CommitTransactionAsync(cancellationToken);
-            return 1;
+            return entry.Id;
         }
         catch
         {
@@ -133,11 +135,10 @@ public class CreateProductEntryCommandHandler(
         return currency;
     }
 
-    private async Task<Product> GetOrCreateProductAsync(ProductEntryCommand item, UnitMeasure defaultUnitMeasure, CancellationToken ct)
+    private async Task<Product> GetOrCreateProductAsync(CreateProductEntryCommand item, UnitMeasure defaultUnitMeasure, CancellationToken ct)
     {
         Product? product = null;
 
-        // Agar Product.Id mavjud bo'lsa, ID bo'yicha qidirish
         if (item.Product.Id > 0)
         {
             product = await context.Products
@@ -145,7 +146,6 @@ public class CreateProductEntryCommandHandler(
                 .FirstOrDefaultAsync(p => p.Id == item.Product.Id, ct);
         }
 
-        // Agar topilmasa, Code bo'yicha qidirish
         if (product is null && !string.IsNullOrWhiteSpace(item.Product.Code))
         {
             product = await context.Products
@@ -153,12 +153,18 @@ public class CreateProductEntryCommandHandler(
                 .FirstOrDefaultAsync(p => p.Code == item.Product.Code, ct);
         }
 
-        // Agar hali ham topilmasa, yangi Product yaratish
         if (product is null)
         {
             if (string.IsNullOrWhiteSpace(item.Product.Code) || string.IsNullOrWhiteSpace(item.Product.Name))
             {
                 throw new AppException("Yangi mahsulot yaratish uchun Kod va Nom majburiy!");
+            }
+
+            var imagePath = item.Product.ImagePath;
+            if (!string.IsNullOrWhiteSpace(imagePath) && imagePath.Contains("/temp/"))
+            {
+                var newKey = await fileStorage.MoveFileAsync(imagePath, "products", ct);
+                if (newKey != null) imagePath = newKey;
             }
 
             product = new Product
@@ -168,35 +174,18 @@ public class CreateProductEntryCommandHandler(
                 NormalizedName = item.Product.Name.ToUpper(),
                 ProductionOrigin = item.ProductionOrigin,
                 UnitMeasure = defaultUnitMeasure,
-                ImagePath = item.Product.ImagePath,
+                ImagePath = imagePath,
                 ProductTypes = []
             };
 
             context.Products.Add(product);
-        }
-        else
-        {
-            // Mavjud mahsulot ma'lumotlarini yangilash
-            if (!string.IsNullOrWhiteSpace(item.Product.Name) && product.Name != item.Product.Name)
-            {
-                product.Name = item.Product.Name;
-                product.NormalizedName = item.Product.Name.ToUpper();
-            }
-
-            product.ProductionOrigin = item.ProductionOrigin;
-
-            // ImagePath ni yangilash (agar kiritilgan bo'lsa)
-            if (!string.IsNullOrWhiteSpace(item.Product.ImagePath))
-            {
-                product.ImagePath = item.Product.ImagePath;
-            }
         }
 
         return product;
     }
 
     private async Task<ProductType> GetOrCreateProductTypeAsync(
-        ProductEntryCommand item,
+        CreateProductEntryCommand item,
         Product product,
         Currency defaultCurrency,
         CancellationToken ct)
@@ -204,9 +193,8 @@ public class CreateProductEntryCommandHandler(
         ProductType? productType = null;
 
         var productTypeCommand = item.Product.ProductTypes.FirstOrDefault()
-            ?? throw new AppException("ProductType ma'lumotlari topilmadi!");
+            ?? throw new NotFoundException("ProductType ma'lumotlari topilmadi!");
 
-        // ProductTypeId bo'yicha qidirish
         if (productTypeCommand.Id > 0)
         {
             productType = await context.ProductTypes
@@ -218,7 +206,6 @@ public class CreateProductEntryCommandHandler(
                 .FirstOrDefaultAsync(pt => pt.Id == productTypeCommand.Id && pt.ProductId == product.Id, ct);
         }
 
-        // Agar topilmasa, Type bo'yicha qidirish
         if (productType is null && !string.IsNullOrWhiteSpace(productTypeCommand.Type))
         {
             productType = await context.ProductTypes
@@ -230,7 +217,6 @@ public class CreateProductEntryCommandHandler(
                 .FirstOrDefaultAsync(pt => pt.Type == productTypeCommand.Type && pt.ProductId == product.Id, ct);
         }
 
-        // Agar hali ham topilmasa, yangi ProductType yaratish
         if (productType is null)
         {
             if (string.IsNullOrWhiteSpace(productTypeCommand.Type))
@@ -260,7 +246,6 @@ public class CreateProductEntryCommandHandler(
 
     private async Task TryDeductFromInProcessAsync(ProductType productType, int totalCount, CancellationToken ct)
     {
-        // Faqat mavjud ProductType lar uchun InProcess dan ayirish
         if (productType.Id <= 0)
             return;
 
@@ -281,14 +266,12 @@ public class CreateProductEntryCommandHandler(
     {
         ProductResidue? residue = null;
 
-        // Agar ProductType ning ID si mavjud bo'lsa (ya'ni database dan kelgan), ID orqali qidirish
         if (productType.Id > 0)
         {
             residue = await context.ProductResidues
                 .FirstOrDefaultAsync(r => r.ProductTypeId == productType.Id && r.ShopId == shop.Id, ct);
         }
 
-        // Agar topilmasa yoki yangi ProductType bo'lsa, yangi residue yaratish
         if (residue is null)
         {
             residue = new ProductResidue
@@ -300,7 +283,6 @@ public class CreateProductEntryCommandHandler(
             };
             context.ProductResidues.Add(residue);
 
-            // ProductType ga ProductResidue ni bog'lash
             productType.ProductResidue = residue;
         }
         else
@@ -311,7 +293,7 @@ public class CreateProductEntryCommandHandler(
         return residue;
     }
 
-    private decimal CalculateCostPrice(ProductType productType)
+    private static decimal CalculateCostPrice(ProductType productType)
     {
         if (productType.ProductTypeItems is null || !productType.ProductTypeItems.Any())
             return 0;
@@ -337,15 +319,15 @@ public class CreateProductEntryCommandHandler(
         return totalCostPrice;
     }
 
-    private void SaveProductEntry(
-        ProductEntryCommand item,
+    private ProductEntry SaveProductEntry(
+        CreateProductEntryCommand item,
         ProductType productType,
         Shop shop,
         ProductResidue residue,
         decimal costPrice,
         Currency defaultCurrency)
     {
-        var totalAmount = item.Count * item.UnitPrice;
+        var totalAmount = (decimal)item.Count * item.UnitPrice;
 
         var entry = new ProductEntry
         {
@@ -365,11 +347,12 @@ public class CreateProductEntryCommandHandler(
 
         context.ProductEntries.Add(entry);
 
-        // Ikki tomonlama bog'lanish
         residue.ProductEntries ??= [];
         residue.ProductEntries.Add(entry);
 
         productType.ProductEntries ??= [];
         productType.ProductEntries.Add(entry);
+
+        return entry;
     }
 }

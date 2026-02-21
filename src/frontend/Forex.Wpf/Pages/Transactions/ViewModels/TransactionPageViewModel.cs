@@ -150,7 +150,7 @@ public partial class TransactionPageViewModel : ViewModelBase
         if (response.IsSuccess)
         {
             // "admin" foydalanuvchisini filtrlash
-            var filteredData = response.Data.Where(u => u.UserName != "admin").ToList();
+            var filteredData = response.Data.Where(u => u.Username != "admin").ToList();
 
             // Filtrlangan ma'lumotni Map qilish
             AvailableUsers = mapper.Map<ObservableCollection<UserViewModel>>(filteredData);

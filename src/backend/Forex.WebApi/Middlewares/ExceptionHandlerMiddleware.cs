@@ -1,6 +1,6 @@
 ﻿namespace Forex.WebApi.Middlewares;
 
-using Forex.Application.Commons.Exceptions;
+using Forex.Application.Common.Exceptions;
 using Forex.WebApi.Models;
 
 public class ExceptionHandlerMiddleware(RequestDelegate next)
@@ -21,14 +21,19 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
                 Message = ex.Message,
             });
         }
-        catch
+        catch (Exception ex)
         {
-            context.Response.StatusCode = 500;
+            Console.WriteLine("========== XATOLIK TAFSILOTI ==========");
+            Console.WriteLine($"Xato turi: {ex.GetType().Name}");
+            Console.WriteLine($"Xabar: {ex.Message}");
+            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            Console.WriteLine("=======================================");
 
+            context.Response.StatusCode = 500;
             await context.Response.WriteAsJsonAsync(new
             {
                 context.Response.StatusCode,
-                Message = "An unexpected error occurred.",
+                ex.Message
             });
         }
     }

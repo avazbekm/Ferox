@@ -11,9 +11,9 @@ public class ProductTypeItemsController : BaseController
 {
     [HttpGet]
     public async Task<IActionResult> GetAll() =>
-        Ok(new Response { Data = await Mediator.Send(new GetAllProductTypeItemQuery()) });
+        Ok(new Response { Data = await Mediator.Send(new GetAllProductTypeItemQuery(), Ct) });
 
     [HttpPost("filter")]
     public async Task<IActionResult> GetFiltered(ProductTypeItemFilterQuery query)
-        => Ok(new Response { Data = await Mediator.Send(query) });
+        => Ok(new Response { Data = await Mediator.Send(query, Ct) });
 }

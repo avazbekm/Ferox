@@ -5,7 +5,7 @@
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
              Background="White">
 
-    <Grid Margin="15">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="90" />
             <RowDefinition Height="*" />
@@ -145,12 +145,13 @@
 
         <DataGrid
             Grid.Row="1"
-            Margin="0,15,0,0"
             AlternatingRowBackground="#F8F9FA"
             AutoGenerateColumns="False"
             FontSize="14"
             VirtualizingStackPanel.VirtualizationMode="Standard"
             EnableRowVirtualization="True"
+            BorderBrush="LightGray"
+            BorderThickness="2"
             GridLinesVisibility="Horizontal"
             HeadersVisibility="Column"
             IsReadOnly="True"

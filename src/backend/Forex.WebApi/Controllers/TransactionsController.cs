@@ -10,21 +10,21 @@ public class TransactionsController : BaseController
 {
     [HttpPost]
     public async Task<IActionResult> Create(CreateTransactionCommand command)
-        => Ok(new Response { Data = await Mediator.Send(command) });
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpPut]
     public async Task<IActionResult> Update(UpdateTransactionCommand command)
-        => Ok(new Response { Data = await Mediator.Send(command) });
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
-        => Ok(new Response { Data = await Mediator.Send(new DeleteTransactionCommand(id)) });
+        => Ok(new Response { Data = await Mediator.Send(new DeleteTransactionCommand(id), Ct) });
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
-        => Ok(new Response { Data = await Mediator.Send(new GetAllTransactionsQuery()) });
+        => Ok(new Response { Data = await Mediator.Send(new GetAllTransactionsQuery(), Ct) });
 
     [HttpPost("filter")]
     public async Task<IActionResult> GetFiltered(TransactionFilterQuery query)
-      => Ok(new Response { Data = await Mediator.Send(query) });
+        => Ok(new Response { Data = await Mediator.Send(query, Ct) });
 }

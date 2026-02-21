@@ -2,123 +2,192 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Forex.ClientService;
 using Forex.ClientService.Enums;
 using Forex.ClientService.Extensions;
 using Forex.ClientService.Models.Commons;
 using Forex.ClientService.Models.Requests;
-using Forex.Wpf.Common.Interfaces;
+using Forex.Wpf.Common.Extensions;
+using Forex.Wpf.Common.Messages;
 using Forex.Wpf.Pages.Common;
-using Forex.Wpf.Pages.Products.Views;
 using Forex.Wpf.ViewModels;
+using Mapster;
 using MapsterMapper;
 using System.Collections.ObjectModel;
-using System.Windows;
+using System.ComponentModel;
 
-public partial class ProductPageViewModel : ViewModelBase, INavigationAware
+public partial class ProductPageViewModel : ViewModelBase
 {
     private readonly ForexClient client;
     private readonly IMapper mapper;
-    private readonly INavigationService navigation;
+    private ProductEntryViewModel? backupEntry;
+    private int backupIndex = -1;
+    private int currentPage = 1;
+    private bool hasMoreItems = true;
+    private const int PageSize = 35;
+    [ObservableProperty] private bool isNewProductMode;
+    [ObservableProperty] private ProductViewModel currentProduct;
 
-    public ProductPageViewModel(IMapper mapper, ForexClient client, INavigationService navigation)
+    public ProductPageViewModel(IMapper mapper, ForexClient client)
     {
         this.mapper = mapper;
         this.client = client;
-        this.navigation = navigation;
-        CurrentProductEntry = new ProductEntryViewModel();
-        CurrentProductEntry.PropertyChanged += OnCurrentProductEntryPropertyChanged;
+        CurrentProductEntry = new();
+        CurrentProduct = new();
         _ = LoadDataAsync();
     }
 
-    [ObservableProperty] private ObservableCollection<ProductEntryViewModel> productEntries = [];
     [ObservableProperty] private ObservableCollection<ProductViewModel> availableProducts = [];
-    public string[] ProductionOrigins { get; set; } = Enum.GetNames<ProductionOrigin>();
-    [ObservableProperty] private DateTime beginDate = DateTime.Today.AddDays(-7);
-    [ObservableProperty] private DateTime endDate = DateTime.Today;
-    [ObservableProperty] private ProductEntryViewModel currentProductEntry = new();
-    [ObservableProperty] private ProductEntryViewModel? selectedProductEntry = default;
+    [ObservableProperty] private ObservableCollection<ProductEntryViewModel> productEntries = [];
+    [ObservableProperty] private ProductEntryViewModel? selectedProductEntry;
+    [ObservableProperty] private string productType = string.Empty;
+    [ObservableProperty] private string productCode = string.Empty;
+    [ObservableProperty] private ProductEntryViewModel currentProductEntry;
 
-    #region Load Data
+    public static IEnumerable<ProductionOrigin> ProductionOrigins => Enum.GetValues<ProductionOrigin>();
+
+    #region Loading Data
 
     private async Task LoadDataAsync()
     {
-        await LoadProductsAsync();
-        await LoadProductEntriesAsync();
+        await Task.WhenAll(
+            LoadProductsAsync(),
+            LoadProductEntriesAsync());
     }
 
     private async Task LoadProductsAsync()
     {
-        var response = await client.Products.GetAllAsync()
-            .Handle(isLoading => IsLoading = isLoading);
-
-        if (response.IsSuccess)
-            AvailableProducts = mapper.Map<ObservableCollection<ProductViewModel>>(response.Data);
-        else
-            ErrorMessage = response.Message ?? "Mahsulotlarni yuklashda xatolik!";
+        var response = await client.Products.GetAllAsync().Handle(l => IsLoading = l);
+        if (response.IsSuccess) AvailableProducts = mapper.Map<ObservableCollection<ProductViewModel>>(response.Data);
+        else ErrorMessage = response.Message ?? "Mahsulotlarni yuklashda xatolik!";
     }
 
     private async Task LoadProductEntriesAsync()
     {
         FilteringRequest request = new()
         {
-            Filters = new()
-            {
-                ["producttype"] = ["include:product"],
-                ["date"] = [$">={BeginDate:o}", $"<{EndDate.AddDays(1):o}"]
-            },
+            Filters = new() { ["producttype"] = ["include:product"] },
             Descending = true,
-            SortBy = "date"
+            SortBy = "date",
+            Page = currentPage,
+            PageSize = PageSize
         };
 
-        var response = await client.ProductEntries.Filter(request)
-            .Handle(isLoading => IsLoading = isLoading);
-
+        var response = await client.ProductEntries.Filter(request).Handle(l => IsLoading = l);
         if (response.IsSuccess)
         {
-            ProductEntries = mapper.Map<ObservableCollection<ProductEntryViewModel>>(response.Data);
+            ProductEntries.AddRange(mapper.Map<ObservableCollection<ProductEntryViewModel>>(response.Data));
+            if (response.Data.Count < PageSize) hasMoreItems = false;
         }
-        else
-            ErrorMessage = response.Message ?? "Product kirimi ma'lumotlarini yuklashda xatolik!";
+        else ErrorMessage = response.Message ?? "Kirim tarixini yuklashda xatolik!";
     }
 
-    private async Task LoadProductTypesForProduct(ProductViewModel product)
+    [RelayCommand]
+    private async Task LoadMoreEntries()
     {
-        if (product.ProductTypes?.Any() == true || product.Id <= 0)
-            return;
+        if (IsLoading || !hasMoreItems) return;
 
-        FilteringRequest request = new()
-        {
-            Filters = new()
-            {
-                ["productid"] = [product.Id.ToString()]
-            }
-        };
-
-        var response = await client.ProductTypes.Filter(request)
-            .Handle(isLoading => IsLoading = isLoading);
-
-        if (response.IsSuccess)
-        {
-            product.ProductTypes = mapper.Map<ObservableCollection<ProductTypeViewModel>>(response.Data);
-        }
-        else
-            ErrorMessage = response.Message ?? "Maxsulot turlarini yuklashda xatolik";
+        currentPage++;
+        await LoadProductEntriesAsync();
     }
 
     #endregion
 
-    #region Property Change Handlers
+    #region Event Handlers
 
-    private async void OnCurrentProductEntryPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    partial void OnCurrentProductEntryChanged(ProductEntryViewModel? oldValue, ProductEntryViewModel newValue)
     {
-        if (e.PropertyName == nameof(ProductEntryViewModel.Product))
+        if (oldValue is not null)
+            oldValue.PropertyChanged -= OnCurrentEntryPropertyChanged;
+
+        if (newValue is not null)
+            newValue.PropertyChanged += OnCurrentEntryPropertyChanged;
+    }
+
+    partial void OnCurrentProductChanged(ProductViewModel? oldValue, ProductViewModel newValue)
+    {
+        if (oldValue is not null)
+            oldValue.PropertyChanged -= OnProductPropertyChanged;
+
+        if (newValue is not null)
         {
-            if (CurrentProductEntry.Product is not null && CurrentProductEntry.Product.Id > 0)
+            newValue.PropertyChanged += OnProductPropertyChanged;
+            CurrentProductEntry.ProductionOrigin = newValue.ProductionOrigin;
+
+            if (ProductCode != newValue.Code)
+                ProductCode = newValue.Code;
+        }
+    }
+
+    private void OnCurrentEntryPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ProductEntryViewModel.BundleCount) or nameof(ProductEntryViewModel.BundleItemCount))
+        {
+            if (CurrentProductEntry.BundleCount.HasValue && CurrentProductEntry.BundleItemCount.HasValue)
+                CurrentProductEntry.Count = CurrentProductEntry.BundleCount * CurrentProductEntry.BundleItemCount;
+        }
+    }
+
+    private void OnProductPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ProductViewModel.SelectedType) && CurrentProduct.SelectedType is not null)
+            UpdateEntryCalculations();
+    }
+
+    partial void OnProductCodeChanged(string? oldValue, string newValue)
+    {
+        if (!string.IsNullOrEmpty(oldValue))
+        {
+            var toRemove = AvailableProducts.FirstOrDefault(c => c.Code == oldValue && c.Id < 1);
+            if (toRemove != null)
             {
-                await LoadProductTypesForProduct(CurrentProductEntry.Product);
+                AvailableProducts.Remove(toRemove);
             }
         }
+
+        if (string.IsNullOrWhiteSpace(newValue) || (CurrentProduct != null && CurrentProduct.Code == newValue))
+            return;
+
+        var existing = AvailableProducts.FirstOrDefault(c => string.Equals(c.Code, newValue, StringComparison.OrdinalIgnoreCase));
+
+        if (existing is not null)
+        {
+            CurrentProduct = existing;
+            IsNewProductMode = false;
+        }
+        else if (Confirm($"'{newValue}' yangi mahsulot sifatida qo'shilsinmi?"))
+        {
+            CurrentProduct = new ProductViewModel { Code = newValue };
+            IsNewProductMode = true;
+            CurrentProduct.ImagePath = string.Empty;
+        }
+        else
+        {
+            ProductCode = string.Empty;
+            WeakReferenceMessenger.Default.Send(new FocusControlMessage("ProductCode"));
+        }
+    }
+
+    partial void OnProductTypeChanged(string? oldValue, string newValue)
+    {
+        var type = CurrentProduct.SelectedType;
+        var types = CurrentProduct.ProductTypes;
+        types.Remove(types.FirstOrDefault(c => c.Type == oldValue && c.Id < 1)!);
+
+        if (string.IsNullOrWhiteSpace(newValue) || type?.Type == newValue) return;
+
+        var existing = types.FirstOrDefault(c => string.Equals(c.Type, newValue, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null) CurrentProduct.SelectedType = existing;
+        else if (Confirm($"'{newValue}' yangi razmer sifatida qo'shilsinmi?"))
+        {
+            CurrentProduct.SelectedType = new() { Type = newValue };
+            types.Add(CurrentProduct.SelectedType);
+
+            CurrentProduct.ProductTypes = new ObservableCollection<ProductTypeViewModel>(types);
+            OnPropertyChanged(nameof(CurrentProduct));
+        }
+        else { ProductType = string.Empty; WeakReferenceMessenger.Default.Send(new FocusControlMessage("ProductType")); }
     }
 
     #endregion
@@ -126,334 +195,202 @@ public partial class ProductPageViewModel : ViewModelBase, INavigationAware
     #region Commands
 
     [RelayCommand]
-    private void RedirectToAddPage()
+    private async Task Save()
     {
-        navigation.NavigateTo(new ProductEntryPage());
+        if (!Validate()) return;
+
+        if (CurrentProductEntry.Date.Date == DateTime.Today)
+            CurrentProductEntry.Date = DateTime.Now;
+
+        ProductEntryRequest request = mapper.Map<ProductEntryRequest>(CurrentProductEntry);
+        request.Product = mapper.Map<ProductRequest>(CurrentProduct);
+
+        if (CurrentProduct.SelectedType is not null)
+            request.Product.ProductTypes = [CurrentProduct.SelectedType.Adapt<ProductTypeRequest>()];
+
+        if (IsNewProductMode && !string.IsNullOrWhiteSpace(CurrentProduct.ImagePath))
+        {
+            var uploadedImagePath = await client.FileStorage.UploadFileAsync(CurrentProduct.ImagePath);
+            if (uploadedImagePath is null)
+            {
+                ErrorMessage = "Rasm yuklashda xatolik! Qaytadan urinib ko'ring.";
+                return;
+            }
+            request.Product.ImagePath = uploadedImagePath;
+        }
+
+        if (IsEditing && CurrentProductEntry.Id > 0)
+        {
+            var response = await client.ProductEntries.Update(request).Handle(l => IsLoading = l);
+            if (response.IsSuccess)
+            {
+                var updatedEntry = mapper.Map<ProductEntryViewModel>(CurrentProductEntry);
+                updatedEntry.Id = response.Data;
+                updatedEntry.ProductType = CurrentProduct.SelectedType!;
+                updatedEntry.ProductType.Product = CurrentProduct;
+
+                if (backupIndex >= 0 && backupIndex < ProductEntries.Count)
+                    ProductEntries[backupIndex] = updatedEntry;
+                else
+                    ProductEntries.Add(updatedEntry);
+
+                SuccessMessage = "Muvaffaqiyatli yangilandi!";
+                CleanupAfterSave();
+            }
+            else ErrorMessage = response.Message ?? "Yangilashda xatolik!";
+        }
+        else
+        {
+            var response = await client.ProductEntries.Create(request).Handle(l => IsLoading = l);
+            if (response.IsSuccess)
+            {
+                var newEntry = mapper.Map<ProductEntryViewModel>(CurrentProductEntry);
+                newEntry.Id = response.Data;
+                newEntry.ProductType = CurrentProduct.SelectedType!;
+                newEntry.ProductType.Product = CurrentProduct;
+
+                ProductEntries.Insert(0, newEntry);
+                SuccessMessage = "Muvaffaqiyatli saqlandi!";
+
+                if (IsNewProductMode)
+                    await LoadProductsAsync();
+
+                CleanupAfterSave();
+            }
+            else ErrorMessage = response.Message ?? "Saqlashda xatolik!";
+        }
     }
 
     [RelayCommand]
-    private async Task FilterProductEntries()
+    private async Task Edit()
     {
-        await LoadProductEntriesAsync();
+        if (SelectedProductEntry is null) return;
+
+        if (IsEditing && !Confirm("Hozirgi tahrirlash jarayoni bekor qilinadi. Davom etasizmi?")) return;
+
+        Cancel();
+
+        IsEditing = true;
+        IsNewProductMode = false;
+
+        backupIndex = ProductEntries.IndexOf(SelectedProductEntry);
+        backupEntry = mapper.Map<ProductEntryViewModel>(SelectedProductEntry);
+
+        CurrentProductEntry = mapper.Map<ProductEntryViewModel>(SelectedProductEntry);
+
+        var product = AvailableProducts.FirstOrDefault(p => p.Id == SelectedProductEntry.ProductType!.ProductId);
+        if (product is null && SelectedProductEntry.ProductType?.Product is not null)
+            product = AvailableProducts.FirstOrDefault(p => p.Code == SelectedProductEntry.ProductType.Product.Code);
+
+        if (product is not null)
+        {
+            CurrentProduct = product;
+            ProductCode = CurrentProduct.Code;
+
+            var type = CurrentProduct.ProductTypes.FirstOrDefault(pt => pt.Type == SelectedProductEntry.ProductType!.Type);
+            if (type is not null)
+                CurrentProduct.SelectedType = type;
+            else
+            {
+                CurrentProduct.SelectedType = SelectedProductEntry.ProductType!;
+                if (!CurrentProduct.ProductTypes.Any(pt => pt.Type == SelectedProductEntry.ProductType!.Type))
+                    CurrentProduct.ProductTypes.Add(SelectedProductEntry.ProductType!);
+            }
+        }
+        else
+        {
+            CurrentProduct = new ProductViewModel();
+            ProductCode = string.Empty;
+        }
+
+        ProductEntries.Remove(SelectedProductEntry);
+        SelectedProductEntry = null;
     }
 
     [RelayCommand]
-    private async Task Delete(ProductEntryViewModel value)
+    private async Task Delete(ProductEntryViewModel? entry)
     {
-        if (value is null)
-            return;
+        if (entry is null) return;
 
-        var result = MessageBox.Show(
-            $"Mahsulotni o'chirishni tasdiqlaysizmi?",
-            "O'chirishni tasdiqlash",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
+        if (!Confirm("Ushbu kirimni o'chirmoqchimisiz?")) return;
 
-        if (result == MessageBoxResult.No)
-            return;
-
-        var response = await client.ProductEntries.Delete(value.Id)
-            .Handle(isLoading => IsLoading = isLoading);
+        var response = await client.ProductEntries.Delete(entry.Id).Handle(l => IsLoading = l);
 
         if (response.IsSuccess)
         {
-            ProductEntries.Remove(value);
-            SuccessMessage = "Mahsulot kirimi muvaffaqiyatli o'chirildi";
+            ProductEntries.Remove(entry);
+            SuccessMessage = "Muvaffaqiyatli o'chirildi!";
         }
         else
-            ErrorMessage = response.Message ?? "Mahsulot kirimini o'chirishda xatolik";
-    }
-
-
-    private ProductEntryViewModel? _backupProductEntry = null;
-    [RelayCommand]
-    public async Task Edit()
-    {
-        if (SelectedProductEntry is null)
-            return;
-
-        bool hasCurrentData = CurrentProductEntry.Product is not null ||
-                             CurrentProductEntry.BundleCount.HasValue ||
-                             CurrentProductEntry.Count.HasValue;
-
-        if (hasCurrentData && IsEditing)
         {
-            var result = MessageBox.Show(
-                "Hozirgi kiritilgan ma'lumotlar o'chib ketadi. Davom etmoqchimisiz?",
-                "Ogohlantirish",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.No)
-                return;
-        }
-
-        // BACKUP YARATISH - Edit boshida
-        _backupProductEntry = new ProductEntryViewModel
-        {
-            Id = SelectedProductEntry.Id,
-            Date = SelectedProductEntry.Date,
-            BundleCount = SelectedProductEntry.BundleCount,
-            Count = SelectedProductEntry.Count,
-            ProductionOrigin = SelectedProductEntry.ProductionOrigin,
-            ProductionOriginName = SelectedProductEntry.ProductionOrigin.ToString(),
-            ProductType = SelectedProductEntry.ProductType
-        };
-
-        // ... qolgan kod o'zgarishsiz davom etadi
-        if (!AvailableProducts.Any())
-        {
-            await LoadProductsAsync();
-        }
-
-        CurrentProductEntry.PropertyChanged -= OnCurrentProductEntryPropertyChanged;
-
-        try
-        {
-            var productCode = SelectedProductEntry.ProductType?.Product?.Code;
-            var productName = SelectedProductEntry.ProductType?.Product?.Name;
-            var productId = SelectedProductEntry.ProductType?.Product?.Id ?? 0;
-
-            if (string.IsNullOrEmpty(productCode))
-            {
-                WarningMessage = "Mahsulot ma'lumotlari topilmadi!";
-                return;
-            }
-
-            var matchingProduct = AvailableProducts.FirstOrDefault(p => p.Code == productCode);
-
-            if (matchingProduct is not null)
-            {
-                await LoadProductTypesForProduct(matchingProduct);
-                CurrentProductEntry.Product = matchingProduct;
-
-                var matchingType = matchingProduct.ProductTypes?.FirstOrDefault(t =>
-                    t.Type == SelectedProductEntry.ProductType?.Type);
-
-                if (matchingType is not null)
-                {
-                    matchingType.BundleItemCount = SelectedProductEntry.ProductType?.BundleItemCount ?? matchingType.BundleItemCount;
-                    matchingType.UnitPrice = SelectedProductEntry.ProductType?.UnitPrice ?? matchingType.UnitPrice;
-                    CurrentProductEntry.Product.SelectedType = matchingType;
-                }
-                else if (SelectedProductEntry.ProductType is not null)
-                {
-                    var newType = new ProductTypeViewModel
-                    {
-                        Id = SelectedProductEntry.ProductType.Id,
-                        Type = SelectedProductEntry.ProductType.Type ?? "",
-                        BundleItemCount = SelectedProductEntry.ProductType.BundleItemCount,
-                        UnitPrice = SelectedProductEntry.ProductType.UnitPrice,
-                        ProductTypeItems = []
-                    };
-
-                    matchingProduct.ProductTypes ??= new ObservableCollection<ProductTypeViewModel>();
-                    matchingProduct.ProductTypes.Add(newType);
-                    CurrentProductEntry.Product.SelectedType = newType;
-                }
-            }
-            else
-            {
-                var newProduct = new ProductViewModel
-                {
-                    Id = productId,
-                    Code = productCode,
-                    Name = productName ?? "",
-                    ProductionOrigin = SelectedProductEntry.ProductionOrigin,
-                    ProductTypes = []
-                };
-
-                if (productId > 0)
-                {
-                    await LoadProductTypesForProduct(newProduct);
-                }
-
-                if (SelectedProductEntry.ProductType is not null)
-                {
-                    var matchingType = newProduct.ProductTypes?.FirstOrDefault(t =>
-                        t.Type == SelectedProductEntry.ProductType.Type);
-
-                    if (matchingType is not null)
-                    {
-                        matchingType.BundleItemCount = SelectedProductEntry.ProductType.BundleItemCount ?? matchingType.BundleItemCount;
-                        matchingType.UnitPrice = SelectedProductEntry.ProductType.UnitPrice ?? matchingType.UnitPrice;
-                        newProduct.SelectedType = matchingType;
-                    }
-                    else
-                    {
-                        var newType = new ProductTypeViewModel
-                        {
-                            Id = SelectedProductEntry.ProductType.Id,
-                            Type = SelectedProductEntry.ProductType.Type ?? "",
-                            BundleItemCount = SelectedProductEntry.ProductType.BundleItemCount,
-                            UnitPrice = SelectedProductEntry.ProductType.UnitPrice,
-                            ProductTypeItems = []
-                        };
-
-                        newProduct.ProductTypes!.Add(newType);
-                        newProduct.SelectedType = newType;
-                    }
-                }
-
-                CurrentProductEntry.Product = newProduct;
-
-                if (!AvailableProducts.Any(p => p.Code == productCode))
-                {
-                    AvailableProducts.Add(newProduct);
-                }
-            }
-
-            CurrentProductEntry.Id = SelectedProductEntry.Id;
-            CurrentProductEntry.Date = SelectedProductEntry.Date;
-            CurrentProductEntry.BundleCount = SelectedProductEntry.BundleCount;
-            CurrentProductEntry.Count = SelectedProductEntry.Count;
-            CurrentProductEntry.ProductionOrigin = SelectedProductEntry.ProductionOrigin;
-            CurrentProductEntry.ProductionOriginName = SelectedProductEntry.ProductionOrigin.ToString();
-
-            IsEditing = true;
-
-            ProductEntries.Remove(SelectedProductEntry);
-            SelectedProductEntry = null;
-        }
-        finally
-        {
-            CurrentProductEntry.PropertyChanged += OnCurrentProductEntryPropertyChanged;
+            ErrorMessage = response.Message ?? "O'chirishda xatolik!";
         }
     }
 
     [RelayCommand]
     private void Cancel()
     {
-        if (_backupProductEntry is null)
+        if (IsEditing && backupEntry is not null)
         {
-            WarningMessage = "Bekor qilinadigan o'zgarish yo'q!";
-            return;
+            if (backupIndex >= 0 && backupIndex <= ProductEntries.Count)
+                ProductEntries.Insert(backupIndex, backupEntry);
+            else
+                ProductEntries.Add(backupEntry);
         }
 
-        // Backup'dan ma'lumotlarni qaytarish
-        ProductEntries.Add(_backupProductEntry);
+        CleanupAfterSave();
+    }
 
-        // Edit rejimini o'chirish va formani tozalash
+    #endregion
+
+    #region Helpers
+
+    private void CleanupAfterSave()
+    {
         IsEditing = false;
-        ClearCurrentEntry();
-
-        // Backup'ni tozalash
-        _backupProductEntry = null;
+        IsNewProductMode = false;
+        backupEntry = null;
+        backupIndex = -1;
+        CurrentProductEntry = new();
+        CurrentProduct = new();
+        ProductCode = string.Empty;
     }
 
-    [RelayCommand]
-    private async Task Update()
+    private bool Validate()
     {
-        if (CurrentProductEntry is null || CurrentProductEntry.Id <= 0)
+        if (CurrentProduct is null) return SetWarning("Mahsulot tanlanmagan!");
+        if (string.IsNullOrWhiteSpace(CurrentProduct.Code)) return SetWarning("Mahsulot kodi kiritilmagan!");
+        if (CurrentProduct.SelectedType is null) return SetWarning("Mahsulot turi tanlanmagan!");
+
+        if (IsNewProductMode)
         {
-            ErrorMessage = "Yangilanishi kerak bo'lgan ma'lumot tanlanmagan!";
-            return;
+            if (string.IsNullOrWhiteSpace(CurrentProduct.Name)) return SetWarning("Mahsulot nomi kiritilmagan!");
         }
 
-        if (CurrentProductEntry.Product is null)
-        {
-            WarningMessage = "Mahsulot tanlanmagan!";
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(CurrentProduct.SelectedType.Type)) return SetWarning("Razmer nomi kiritilmagan!");
 
-        if (CurrentProductEntry.Product.SelectedType is null)
-        {
-            WarningMessage = "Razmer tanlanmagan!";
-            return;
-        }
+        if (!CurrentProductEntry.Count.HasValue || CurrentProductEntry.Count <= 0) return SetWarning("Son (Count) kiritilmagan!");
 
-        if (CurrentProductEntry.BundleCount <= 0)
-        {
-            WarningMessage = "Qop sonini kiriting!";
-            return;
-        }
-
-        if (CurrentProductEntry.Product.SelectedType.BundleItemCount <= 0)
-        {
-            WarningMessage = "Qopdagi sonni kiriting!";
-            return;
-        }
-
-        if (CurrentProductEntry.Product.SelectedType.UnitPrice <= 0)
-        {
-            WarningMessage = "Tannarxni kiriting!";
-            return;
-        }
-
-        var request = new ProductEntryRequest
-        {
-            Id = CurrentProductEntry.Id,
-            Date = CurrentProductEntry.Date,
-            Count = CurrentProductEntry.Count,
-            BundleItemCount = CurrentProductEntry.Product.SelectedType.BundleItemCount!.Value,
-            PreparationCostPerUnit = 0,
-            UnitPrice = CurrentProductEntry.Product.SelectedType.UnitPrice!.Value,
-            ProductionOrigin = CurrentProductEntry.ProductionOrigin,
-            Product = new ProductRequest
-            {
-                Id = CurrentProductEntry.Product.Id,
-                Code = CurrentProductEntry.Product.Code,
-                Name = CurrentProductEntry.Product.Name,
-                ProductionOrigin = CurrentProductEntry.ProductionOrigin,
-                ProductTypes =
-                [
-                    new() {
-                    Id = CurrentProductEntry.Product.SelectedType.Id,
-                    Type = CurrentProductEntry.Product.SelectedType.Type,
-                    BundleItemCount = (int)CurrentProductEntry.Product.SelectedType.BundleItemCount.Value,
-                    UnitPrice = CurrentProductEntry.Product.SelectedType.UnitPrice.Value,
-                    ProductTypeItems = []
-                }
-                ]
-            }
-        };
-
-        var response = await client.ProductEntries.Update(request)
-            .Handle(isLoading => IsLoading = isLoading);
-
-        if (response.IsSuccess)
-        {
-            SuccessMessage = "Mahsulot kirimi muvaffaqiyatli yangilandi!";
-
-            IsEditing = false;
-            ClearCurrentEntry();
-
-            // BACKUP'NI TOZALASH
-            _backupProductEntry = null;
-
-            await LoadProductEntriesAsync();
-        }
-        else
-        {
-            ErrorMessage = response.Message ?? "Mahsulot kirimini yangilashda xatolik";
-        }
+        return true;
     }
 
-    #endregion
-
-    #region Private Helpers
-
-    private void ClearCurrentEntry()
+    private bool SetWarning(string msg)
     {
-        CurrentProductEntry.PropertyChanged -= OnCurrentProductEntryPropertyChanged;
-
-        CurrentProductEntry.Id = 0;
-        CurrentProductEntry.Product = null;
-        CurrentProductEntry.BundleCount = null;
-        CurrentProductEntry.Count = null;
-        CurrentProductEntry.ProductionOriginName = null!;
-
-        CurrentProductEntry.PropertyChanged += OnCurrentProductEntryPropertyChanged;
+        WarningMessage = msg;
+        return false;
     }
 
-    public void OnNavigatedTo()
+    private void UpdateEntryCalculations()
     {
-        _ = LoadDataAsync();
+        if (CurrentProduct?.SelectedType is not null)
+        {
+            CurrentProductEntry.UnitPrice = CurrentProduct.SelectedType.UnitPrice;
+            CurrentProductEntry.BundleItemCount = CurrentProduct.SelectedType.BundleItemCount;
+
+            if (CurrentProductEntry.BundleCount.HasValue && CurrentProductEntry.BundleItemCount.HasValue)
+                CurrentProductEntry.Count = CurrentProductEntry.BundleCount * CurrentProductEntry.BundleItemCount;
+        }
     }
 
-    public void OnNavigatedFrom()
-    {
-    }
-
-    #endregion
+    #endregion Helpers
 }

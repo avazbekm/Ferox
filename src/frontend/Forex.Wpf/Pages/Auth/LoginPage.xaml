@@ -9,7 +9,11 @@
     Title="LoginPage"
     d:DesignHeight="700"
     d:DesignWidth="800"
-    Loaded="Page_Loaded"
+    xmlns:service="clr-namespace:Forex.Wpf.Common.Services"
+    service:WindowResizeService.Width="550"
+    service:WindowResizeService.Height="600"
+    service:WindowResizeService.Always="True"
+    service:WindowResizeService.Lock="True"
     mc:Ignorable="d">
 
     <Grid>
@@ -66,7 +70,7 @@
                     x:Name="tbLogin"
                     Margin="0,0,0,10"
                     Padding="8"
-                    md:HintAssist.Hint="Username"
+                    md:HintAssist.Hint="   Username"
                     Background="#3A3A55"
                     BorderThickness="0"
                     FontSize="16"
@@ -76,7 +80,7 @@
                     x:Name="pbPassword"
                     Margin="0,0,0,10"
                     Padding="8"
-                    md:HintAssist.Hint="Parol"
+                    md:HintAssist.Hint="   Parol"
                     Background="#3A3A55"
                     BorderThickness="0"
                     FontSize="16"

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 public abstract class CrudController<TResponse, TGetAllQuery, TGetByIdQuery,
                                      TCreateCommand, TUpdateCommand, TDeleteCommand>
-    : ReadOnlyController<TResponse, TGetAllQuery, TGetByIdQuery>
+    : QueryControllers<TResponse, TGetAllQuery, TGetByIdQuery>
       where TGetAllQuery : IRequest<IReadOnlyCollection<TResponse>>
       where TGetByIdQuery : IRequest<TResponse>
       where TCreateCommand : IRequest<long>
@@ -15,17 +15,13 @@ public abstract class CrudController<TResponse, TGetAllQuery, TGetByIdQuery,
 {
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] TCreateCommand command)
-        => Ok(new Response { Data = await Mediator.Send(command) });
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] TUpdateCommand command)
-        => Ok(new Response { Data = await Mediator.Send(command) });
+        => Ok(new Response { Data = await Mediator.Send(command, Ct) });
 
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
-        => Ok(new Response
-        {
-            Data = await Mediator.Send(
-            (TDeleteCommand)Activator.CreateInstance(typeof(TDeleteCommand), id)!)
-        });
+        => Ok(new Response { Data = await Mediator.Send((TDeleteCommand)Activator.CreateInstance(typeof(TDeleteCommand), id)!, Ct) });
 }

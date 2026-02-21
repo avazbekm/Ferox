@@ -1,7 +1,6 @@
 ﻿namespace Forex.ClientService.Models.Requests;
 
 using Forex.ClientService.Enums;
-using System.Text.Json.Serialization;
 
 public sealed record ProductRequest
 {
@@ -12,8 +11,5 @@ public sealed record ProductRequest
     public string? ImagePath { get; set; }
     public ProductionOrigin ProductionOrigin { get; set; }
 
-    public ICollection<ProductTypeRequest> ProductTypes { get; set; } = default!;
-
-    [JsonIgnore]
-    public byte[]? ImageBytes { get; set; }
+    public ICollection<ProductTypeRequest> ProductTypes { get; set; } = [];
 }

@@ -25,8 +25,8 @@ public partial class CustomerSalesRatingView : UserControl
     private void RegisterFocusNavigation()
     {
         FocusNavigator.RegisterElements([
-            dateBegin.text,
-            dateEnd.text,
+            dateBegin.input,
+            dateEnd.input,
             cbxCustomer,
             btnPreview,
             btnPrint,

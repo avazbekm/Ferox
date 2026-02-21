@@ -26,7 +26,7 @@
         </Style>
     </Page.Resources>
 
-    <Grid Margin="20">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -297,12 +297,12 @@
         <DataGrid
             x:Name="dgUsers"
             Grid.Row="2"
-            Margin="0"
+            Margin="0 10 0 0"
             VirtualizingStackPanel.VirtualizationMode="Standard"
             EnableRowVirtualization="True"
             AutoGenerateColumns="False"
-            BorderBrush="Gray"
-            BorderThickness="1"
+            BorderBrush="LightGray"
+            BorderThickness="2"
             CanUserAddRows="False"
             HeadersVisibility="Column"
             IsReadOnly="True"
@@ -454,7 +454,7 @@
                                                 Margin="2,0"
                                                 Padding="0"
                                                 Background="#D32F2F"
-                                                Click="btnDelete_Click"
+                                                Click="BtnDelete_Click"
                                                 Cursor="Hand"
                                                 FontSize="12"
                                                 FontWeight="Bold"
