@@ -127,6 +127,9 @@ public partial class HomePage : Page
     {
         userProfilePopup.IsOpen = false;
 
+        // Resize window for better modal visibility
+        this.ResizeWindow(810, 700, always: true);
+
         // Load user data
         await ProfileViewModel.LoadUserDataAsync();
 
@@ -197,7 +200,7 @@ public partial class HomePage : Page
         {
             if (pwdNewPassword.Password != pwdConfirmPassword.Password)
             {
-                ProfileViewModel.ErrorMessage = "Parollar mos kelmadi!";
+                ProfileViewModel.WarningMessage = "Parollar mos kelmadi!";
                 return;
             }
             ProfileViewModel.NewPassword = pwdNewPassword.Password;
@@ -219,6 +222,9 @@ public partial class HomePage : Page
     {
         profileEditOverlay.Visibility = Visibility.Collapsed;
         mainContent.IsEnabled = true;
+        
+        // Restore original window size
+        this.ResizeWindow(810, 580, always: true);
 
         pwdNewPassword.Clear();
         pwdConfirmPassword.Clear();
