@@ -16,6 +16,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -29,6 +30,8 @@ public partial class AddSalePageViewModel : ViewModelBase
     private readonly ForexClient client;
     private readonly IMapper mapper;
     private readonly INavigationService navigation;
+    private static readonly Dictionary<string, BitmapSource> _imageCache = new();
+    private static readonly HttpClient _httpClient = new HttpClient();
 
     // Initialization state tracking
     private Task? _initializationTask;
@@ -294,7 +297,7 @@ public partial class AddSalePageViewModel : ViewModelBase
         }
     }
 
-    public void ShowPrintPreview()
+    public async void ShowPrintPreview()
     {
         if (SaleItems == null || !SaleItems.Any())
         {
@@ -302,150 +305,126 @@ public partial class AddSalePageViewModel : ViewModelBase
             return;
         }
 
-        var fixedDoc = CreateFixedDocumentForPrint();
-
-        // 1. TOOLBAR VA TELEGRAM TUGMASI (Sening koding asosida)
-        var toolbar = new StackPanel
+        try
         {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(10)
-        };
+            // 1. Rasmlarni parallel yuklash (Tezlik siri)
+            var uniqueUrls = SaleItems
+                .Select(i => i.Product.DisplayImagePath)
+                .Where(url => !string.IsNullOrEmpty(url) && !_imageCache.ContainsKey(url))
+                .Distinct()
+                .ToList();
 
-        var shareButton = new Button
-        {
-            Content = "Telegram’da ulashish",
-            Padding = new Thickness(15, 5, 15, 5),
-            Background = new SolidColorBrush(Color.FromRgb(0, 136, 204)),
-            Foreground = Brushes.White,
-            FontSize = 14,
-            FontWeight = FontWeights.Bold,
-            Cursor = Cursors.Hand,
-            BorderThickness = new Thickness(0)
-        };
-
-        shareButton.Click += (s, e) =>
-        {
-            try
+            if (uniqueUrls.Any())
             {
-                string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string folder = Path.Combine(docs, "Forex", "Savdolar");
-                Directory.CreateDirectory(folder);
-
-                // Mijoz ismi va sana bilan fayl nomi yaratish
-                string customerName = (Customer?.Name ?? "Naqd").Replace(" ", "_");
-                string fileName = $"Savdo_{customerName}_{DateTime.Now:dd_MM_yyyy}.pdf";
-                string path = Path.Combine(folder, fileName);
-
-                // PDF qilib saqlash (Metodingni chaqiramiz)
-                SaveFixedDocumentToPdf(fixedDoc, path, 96);
-
-                if (File.Exists(path))
+                // Barcha rasmlarni bir vaqtda yuklashni boshlaymiz
+                var tasks = uniqueUrls.Select(async url =>
                 {
-                    Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true });
-                    Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
-                }
+                    var bitmap = await DownloadBitmapAsync(url);
+                    if (bitmap != null) _imageCache[url] = bitmap;
+                });
+                await Task.WhenAll(tasks);
             }
-            catch (Exception ex)
+
+            // 2. Hujjatni yaratish
+            var fixedDoc = CreateFixedDocumentForPrint();
+
+            // 3. UI qismlari
+            var toolbar = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(10) };
+            var shareButton = new Button
             {
-                MessageBox.Show($"Ulashishda xatolik: {ex.Message}");
-            }
-        };
+                Content = "Telegram’da ulashish",
+                Padding = new Thickness(15, 5, 15, 5),
+                Background = new SolidColorBrush(Color.FromRgb(0, 136, 204)),
+                Foreground = Brushes.White,
+                FontSize = 14,
+                FontWeight = FontWeights.Bold,
+                Cursor = Cursors.Hand,
+                BorderThickness = new Thickness(0)
+            };
 
-        toolbar.Children.Add(shareButton);
+            shareButton.Click += (s, e) =>
+            {
+                try
+                {
+                    string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    string folder = Path.Combine(docs, "Forex", "Savdolar");
+                    Directory.CreateDirectory(folder);
 
-        // 2. LAYOUTNI TASHKIL QILISH (Tepada toolbar, pastda viewer)
-        var viewer = new DocumentViewer
+                    string customerName = (Customer?.Name ?? "Naqd").Replace(" ", "_");
+                    string fileName = $"Savdo_{customerName}_{DateTime.Now:dd_MM_yyyy}.pdf";
+                    string path = Path.Combine(folder, fileName);
+
+                    SaveFixedDocumentToPdf(fixedDoc, path, 96);
+
+                    if (File.Exists(path))
+                    {
+                        Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true });
+                        Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+                    }
+                }
+                catch (Exception ex) { MessageBox.Show($"Ulashishda xatolik: {ex.Message}"); }
+            };
+
+            toolbar.Children.Add(shareButton);
+            var viewer = new DocumentViewer { Document = fixedDoc, Margin = new Thickness(8) };
+            var layout = new DockPanel();
+            DockPanel.SetDock(toolbar, Dock.Top);
+            layout.Children.Add(toolbar);
+            layout.Children.Add(viewer);
+
+            var previewWindow = new Window
+            {
+                Title = "Sotuv cheki - Oldindan ko'rish",
+                Width = 1050,
+                Height = 850,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                Content = layout
+            };
+
+            previewWindow.ShowDialog();
+        }
+        catch (Exception ex)
         {
-            Document = fixedDoc,
-            Margin = new Thickness(8)
-        };
-
-        var layout = new DockPanel();
-        DockPanel.SetDock(toolbar, Dock.Top);
-        layout.Children.Add(toolbar);
-        layout.Children.Add(viewer);
-
-        // 3. OYNANI OCHISH
-        var previewWindow = new Window
-        {
-            Title = "Sotuv cheki - Oldindan ko'rish",
-            Width = 1000,
-            Height = 850,
-            WindowStartupLocation = WindowStartupLocation.CenterScreen,
-            WindowStyle = WindowStyle.SingleBorderWindow,
-            ResizeMode = ResizeMode.CanResizeWithGrip,
-            Content = layout // Viewer o'rniga yangi layoutni qo'ydik
-        };
-
-        previewWindow.ShowDialog();
+            MessageBox.Show($"Xatolik: {ex.Message}");
+        }
     }
-
-
     private FixedDocument CreateFixedDocumentForPrint()
     {
         var fixedDoc = new FixedDocument();
-
-        // A4 o'lchamlari va marginlar
         double pageWidth = 793.7;
         double pageHeight = 1122.5;
-
         double marginTop = 40;
         double marginBottom = 40;
         double marginLeft = 30;
         double marginRight = 30;
-
         double tableWorkingWidth = pageWidth - marginLeft - marginRight;
-        double titleHeight = 40;
-        double dateHeight = 30;
-        double rowHeight = 25;
 
-        var items = SaleItems.ToList();
+        // 1. Kod bo'yicha saralash va guruhlash
+        var groupedItems = SaleItems
+            .OrderBy(i => i.Product.Code)
+            .GroupBy(i => i.Product.Code)
+            .ToList();
 
-        // ******************** Yig'indi qiymatlarni hisoblash ********************
-        decimal totalAmountSum = items.Sum(i => i.Amount) ?? 0;
-        double totalBundleCountSum = items.Sum(i => i.BundleCount) ?? 0;
-        double totalTotalCountSum = items.Sum(i => i.TotalCount) ?? 0;
-        // ************************************************************************
+        var flatItems = groupedItems.SelectMany(g => g).ToList();
 
-        // Sahifalashni hisoblash
-        // Bu joyda Jami qatori jadvalning ichiga kirishi uchun joy ajratish kerak
-        double tableAvailableHeight =
-            pageHeight - marginTop - marginBottom - titleHeight - dateHeight;
+        decimal totalAmountSum = flatItems.Sum(i => i.Amount) ?? 0;
+        double totalBundleCountSum = flatItems.Sum(i => i.BundleCount) ?? 0;
+        double totalTotalCountSum = flatItems.Sum(i => i.TotalCount) ?? 0;
 
-        // Ma'lumot qatorlari soni + 1 (Sarlavha qatori) + 1 (Jami qatori)
-        int totalRowsWithHeaderAndFooter = items.Count + 2;
+        string[] headers = { "T/r", "Rasm", "Kod", "Nomi", "Razmer", "Qop soni", "Jami soni", "Narxi", "Jami summa" };
+        double[] finalWidths = { 35, 70, 60, 165, 60, 60, 70, 70, 143.7 };
 
-        // Har bir sahifada nechta ma'lumot qatori sig'ishi
-        // maxDataRowsPerPage hozirgi qolgan joyni hisobga olgan holda
-        int maxDataRowsPerPage = (int)Math.Floor((tableAvailableHeight - rowHeight) / rowHeight);
-        if (maxDataRowsPerPage < 1) maxDataRowsPerPage = 1;
+        int maxRowsPerPage = 22; // Rasm borligi uchun qator sonini biroz kamaytirdik
+        int totalPages = (int)Math.Ceiling((double)(flatItems.Count + 1) / maxRowsPerPage);
 
-        // Jami qator oxirgi sahifada joylashishi uchun umumiy qatorlar sonini to'g'irlash
-        int totalPages = (int)Math.Ceiling((double)(items.Count + 1) / maxDataRowsPerPage);
-
-        int processed = 0;
-        int globalRowIndex = 0;
-
-        string[] headers = { "T/r", "Kod", "Nomi", "Razmer", "Qop soni", "Jami soni", "Narxi", "Jami summa" };
-
-        double[] finalWidths = { 40, 70, 190, 70, 70, 80, 70, 133.7 };
+        int processedIndex = 0;
+        int globalTr = 0;
 
         for (int pageIndex = 0; pageIndex < totalPages; pageIndex++)
         {
-            var page = new FixedPage
-            {
-                Width = pageWidth,
-                Height = pageHeight,
-                Background = Brushes.White
-            };
+            var page = new FixedPage { Width = pageWidth, Height = pageHeight, Background = Brushes.White };
+            var gridContainer = new StackPanel { Margin = new Thickness(marginLeft, marginTop, marginRight, 0) };
 
-            var gridContainer = new StackPanel
-            {
-                Margin = new Thickness(marginLeft, marginTop, marginRight, 0) // Pastki marginni 0 qoldiramiz, chunki Sahifa raqami Footerda
-            };
-
-            // Title va Info qismlari avvalgidek qoladi...
             gridContainer.Children.Add(new TextBlock
             {
                 Text = "Sotilgan mahsulotlar ro'yxati",
@@ -463,157 +442,177 @@ public partial class AddSalePageViewModel : ViewModelBase
                 Margin = new Thickness(0, 0, 0, 10)
             });
 
+            var grid = new Grid { Width = tableWorkingWidth, HorizontalAlignment = HorizontalAlignment.Left };
+            for (int i = 0; i < finalWidths.Length; i++)
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(finalWidths[i]) });
 
-            // Asosiy ma'lumotlar Grid
-            var grid = new Grid
-            {
-                Width = tableWorkingWidth,
-                HorizontalAlignment = HorizontalAlignment.Left
-            };
+            // Header
+            AddRow(grid, true, 0, headers);
+            int currentRow = 1;
 
-            // Ustun ta'riflari
-            for (int i = 0; i < headers.Length; i++)
+            int pageCount = Math.Min(maxRowsPerPage, flatItems.Count - processedIndex);
+            var pageItems = flatItems.Skip(processedIndex).Take(pageCount).ToList();
+
+            // Sahifadagi itemlarni kod bo'yicha guruhlab chiqish (RowSpan uchun)
+            var pageGroups = pageItems.GroupBy(i => i.Product.Code).ToList();
+
+            foreach (var group in pageGroups)
             {
-                grid.ColumnDefinitions.Add(new ColumnDefinition
+                int groupSize = group.Count();
+                bool imageRendered = false;
+
+                foreach (var item in group)
                 {
-                    Width = new GridLength(finalWidths[i], GridUnitType.Pixel)
-                });
+                    globalTr++;
+                    grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+                    // 1. T/R
+                    AddCellToGrid(grid, globalTr.ToString(), currentRow, 0, false, TextAlignment.Center);
+
+                    // 2. RASM (Faqat guruhning birinchi qatorida va RowSpan bilan)
+                    if (!imageRendered)
+                    {
+                        var imageBorder = CreateImageCell(item.Product.DisplayImagePath);
+                        Grid.SetRow(imageBorder, currentRow);
+                        Grid.SetColumn(imageBorder, 1);
+                        Grid.SetRowSpan(imageBorder, groupSize);
+                        grid.Children.Add(imageBorder);
+                        imageRendered = true;
+                    }
+
+                    // Qolgan ustunlar
+                    AddCellToGrid(grid, item.Product.Code ?? "", currentRow, 2, false, TextAlignment.Left);
+                    AddCellToGrid(grid, item.Product.Name ?? "", currentRow, 3, false, TextAlignment.Left);
+                    AddCellToGrid(grid, item.ProductType.Type ?? "", currentRow, 4, false, TextAlignment.Center);
+                    AddCellToGrid(grid, item.BundleCount?.ToString("N0") ?? "0", currentRow, 5, false, TextAlignment.Right);
+                    AddCellToGrid(grid, item.TotalCount?.ToString("N0") ?? "0", currentRow, 6, false, TextAlignment.Right);
+                    AddCellToGrid(grid, item.UnitPrice?.ToString("N2") ?? "0.00", currentRow, 7, false, TextAlignment.Right);
+                    AddCellToGrid(grid, item.Amount?.ToString("N2") ?? "0.00", currentRow, 8, false, TextAlignment.Right);
+
+                    currentRow++;
+                }
             }
 
-            int row = 0;
+            processedIndex += pageItems.Count;
 
-            // 1. Sarlavhalarni qo'shish
-            AddRow(grid, true, row, headers);
-            row++;
-
-            // 2. Ma'lumotlarni qo'shish
-            int count = Math.Min(maxDataRowsPerPage - 1, items.Count - processed); // Sarlavha allaqachon bir qatorni egallagan
-
-            var pageItems = items.Skip(processed).Take(count).ToList();
-
-            foreach (var item in pageItems)
-            {
-                globalRowIndex++;
-                string[] values =
-                [
-                    globalRowIndex.ToString(),
-                    item.Product.Code ?? "",
-                    item.Product.Name ?? "",
-                    item.ProductType.Type ?? "",
-                    item.BundleCount?.ToString("N0") ?? "0",
-                    item.TotalCount?.ToString("N0") ?? "0",
-                    item.UnitPrice?.ToString("N2") ?? "0.00",
-                    item.Amount?.ToString("N2") ?? "0.00"
-                ];
-
-                AddRow(grid, false, row, values);
-                row++;
-            }
-
-            processed += pageItems.Count;
-
-            // ******************** Jami qatorini qo'shish (faqat oxirgi sahifada) ********************
+            // Jami qatori (Faqat oxirgi sahifada)
             if (pageIndex == totalPages - 1)
             {
                 grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                row++;
-
-                // 1. "Jami:" Label
-                var totalLabel = CreateCell("Jami:", true, TextAlignment.Right);
-                totalLabel.Background = Brushes.Transparent; // Fon olib tashlandi
-                Grid.SetRow(totalLabel, row);
+                var totalLabel = CreateCell("Jami:", true, TextAlignment.Left);
+                totalLabel.Padding = new Thickness(10, 5, 4, 5);
+                Grid.SetRow(totalLabel, currentRow);
                 Grid.SetColumn(totalLabel, 0);
-                Grid.SetColumnSpan(totalLabel, 4);
+                Grid.SetColumnSpan(totalLabel, 5); // T/r dan Razmergacha
                 grid.Children.Add(totalLabel);
 
-                // 2. Umumiy Qop soni
-                var totalBundleCell = CreateCell(totalBundleCountSum.ToString("N0"), true, TextAlignment.Right);
-                totalBundleCell.Background = Brushes.Transparent; // Fon olib tashlandi
-                Grid.SetRow(totalBundleCell, row);
-                Grid.SetColumn(totalBundleCell, 4);
-                grid.Children.Add(totalBundleCell);
+                AddCellToGrid(grid, totalBundleCountSum.ToString("N0"), currentRow, 5, true, TextAlignment.Right);
+                AddCellToGrid(grid, totalTotalCountSum.ToString("N0"), currentRow, 6, true, TextAlignment.Right);
 
-                // 3. Umumiy Jami soni
-                var totalCountCell = CreateCell(totalTotalCountSum.ToString("N0"), true, TextAlignment.Right);
-                totalCountCell.Background = Brushes.Transparent; // Fon olib tashlandi
-                Grid.SetRow(totalCountCell, row);
-                Grid.SetColumn(totalCountCell, 5);
-                grid.Children.Add(totalCountCell);
-
-                // 4. Jami Summa (Narxi + Jami Summa birlashtirildi)
                 var totalAmountCell = CreateCell(totalAmountSum.ToString("N2"), true, TextAlignment.Right);
-                totalAmountCell.Background = Brushes.Transparent; // Fon olib tashlandi
-                Grid.SetRow(totalAmountCell, row);
-                Grid.SetColumn(totalAmountCell, 6);
+                Grid.SetRow(totalAmountCell, currentRow);
+                Grid.SetColumn(totalAmountCell, 7);
                 Grid.SetColumnSpan(totalAmountCell, 2);
-
                 if (totalAmountCell.Child is TextBlock tbSum)
                 {
-                    tbSum.FontSize = 14;
-                    tbSum.FontWeight = FontWeights.Bold;
-                    tbSum.Foreground = new SolidColorBrush(Color.FromRgb(0, 50, 150));
+                    tbSum.FontSize = 14; tbSum.Foreground = new SolidColorBrush(Color.FromRgb(0, 50, 150));
                 }
                 grid.Children.Add(totalAmountCell);
             }
 
-            // Asosiy Gridni konteynerga qo'shish
             gridContainer.Children.Add(grid);
             page.Children.Add(gridContainer);
 
-
-            // ******************** FOOTER: Sahifa raqamini joylashtirish ********************
             var pageNum = new TextBlock
             {
                 Text = $"{pageIndex + 1} - bet / {totalPages}",
                 FontSize = 11,
-                Foreground = Brushes.Gray,
-                HorizontalAlignment = HorizontalAlignment.Right // Kerakli joyga joylashish uchun
+                Foreground = Brushes.Gray
             };
-
-            // Sahifa raqamini FixedPage'ning pastki o'ng burchagiga joylashtirish
             FixedPage.SetRight(pageNum, marginRight);
             FixedPage.SetBottom(pageNum, marginBottom);
             page.Children.Add(pageNum);
-            // ******************************************************************************
 
             var pc = new PageContent();
             ((IAddChild)pc).AddChild(page);
             fixedDoc.Pages.Add(pc);
         }
-
         return fixedDoc;
     }
+    private async Task<BitmapSource> DownloadBitmapAsync(string url)
+    {
+        try
+        {
+            byte[] data = await _httpClient.GetByteArrayAsync(url);
+            using (var ms = new MemoryStream(data))
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.StreamSource = ms;
+                bitmap.DecodePixelWidth = 150; // PDF sifati va hajmi uchun optimal
+                bitmap.EndInit();
+                bitmap.Freeze();
+                return bitmap;
+            }
+        }
+        catch { return null; }
+    }
+    private Border CreateImageCell(string imagePath)
+    {
+        var border = new Border
+        {
+            Width = 70, // Kvadrat joy
+            Height = 70,
+            BorderBrush = new SolidColorBrush(Color.FromRgb(230, 230, 230)),
+            BorderThickness = new Thickness(1),
+            Background = Brushes.White,
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
 
-
+        if (!string.IsNullOrEmpty(imagePath) && _imageCache.TryGetValue(imagePath, out var bitmap))
+        {
+            var img = new Image
+            {
+                Source = bitmap,
+                Stretch = Stretch.Uniform, // Seniorlar tanlovi: proporsiya buzilmaydi
+                Margin = new Thickness(2)
+            };
+            RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.HighQuality);
+            border.Child = img;
+        }
+        else
+        {
+            border.Child = new TextBlock { Text = "Rasm yo'q", FontSize = 8, Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
+        }
+        return border;
+    }
+    private void AddCellToGrid(Grid grid, string text, int row, int col, bool isHeader, TextAlignment align)
+    {
+        var cell = CreateCell(text, isHeader, align);
+        Grid.SetRow(cell, row);
+        Grid.SetColumn(cell, col);
+        grid.Children.Add(cell);
+    }
     private void AddRow(Grid grid, bool isHeader, int row, params string[] values)
     {
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-
-        TextAlignment[] alignments =
-        {
-        TextAlignment.Center, // 0 T/r
-        TextAlignment.Left,   // 1 Kod
-        TextAlignment.Left,   // 2 Nomi
-        TextAlignment.Center, // 3 Razmer
-        TextAlignment.Right,  // 4 Qop soni
-        TextAlignment.Right,  // 5 Jami soni
-        TextAlignment.Right,  // 6 Narxi
-        TextAlignment.Right   // 7 Jami summa
-    };
+        TextAlignment[] alignments = {
+            TextAlignment.Center, TextAlignment.Center, TextAlignment.Left,
+            TextAlignment.Left, TextAlignment.Center, TextAlignment.Right,
+            TextAlignment.Right, TextAlignment.Right, TextAlignment.Right
+        };
 
         for (int i = 0; i < values.Length; i++)
         {
-            // JO'RA: Faqat header bo'lsa hamma ustunni markazga olamiz
             TextAlignment finalAlignment = isHeader ? TextAlignment.Center : alignments[i];
-
             var cell = CreateCell(values[i], isHeader, finalAlignment);
-
             Grid.SetRow(cell, row);
             Grid.SetColumn(cell, i);
             grid.Children.Add(cell);
         }
     }
-
     private Border CreateCell(string text, bool isHeader, TextAlignment alignment = TextAlignment.Left)
     {
         var border = new Border
@@ -632,55 +631,36 @@ public partial class AddSalePageViewModel : ViewModelBase
             TextAlignment = alignment,
             VerticalAlignment = VerticalAlignment.Center
         };
-
-        // Jami qatoridagi 'Jami:' so'zini stilini o'rnatish
-        if (text == "Jami:")
-        {
-            tb.FontWeight = FontWeights.SemiBold;
-            tb.FontSize = 16;
-            border.Background = Brushes.Transparent;
-
-            // ❗ YANGILANISH: Chap tomonga siljitish (TextAlignment yuqorida Left ga o'rnatilgan)
-            tb.TextAlignment = TextAlignment.Left;
-            tb.Padding = new Thickness(10, 5, 4, 5); // Chapdan 10px joy qoldirish
-        }
-
         border.Child = tb;
         return border;
     }
-
-    private void SaveFixedDocumentToPdf(FixedDocument doc, string path, int dpi = 300) // ❗ DPI 300 - Sifatli chiqishi uchun
+    private void SaveFixedDocumentToPdf(FixedDocument doc, string path, int dpi = 300)
     {
         try
         {
             if (File.Exists(path)) File.Delete(path);
-
-            using var pdfDoc = new PdfDocument();
+            using var pdfDoc = new PdfSharp.Pdf.PdfDocument();
 
             foreach (var pageContent in doc.Pages)
             {
                 var fixedPage = pageContent.GetPageRoot(false);
                 if (fixedPage == null) continue;
 
-                // 1. Layout-ni yangilash
                 fixedPage.Measure(new Size(fixedPage.Width, fixedPage.Height));
                 fixedPage.Arrange(new Rect(0, 0, fixedPage.Width, fixedPage.Height));
                 fixedPage.UpdateLayout();
 
-                // 2. Sifatni oshirish (DPI hisobiga)
                 double scale = dpi / 96.0;
                 var bitmap = new RenderTargetBitmap(
                     (int)(fixedPage.Width * scale),
                     (int)(fixedPage.Height * scale),
-                    dpi, dpi,
-                    PixelFormats.Pbgra32);
+                    dpi, dpi, PixelFormats.Pbgra32);
 
                 var dv = new DrawingVisual();
                 using (var dc = dv.RenderOpen())
                 {
                     dc.PushTransform(new ScaleTransform(scale, scale));
-                    dc.DrawRectangle(new VisualBrush(fixedPage), null,
-                        new Rect(0, 0, fixedPage.Width, fixedPage.Height));
+                    dc.DrawRectangle(new VisualBrush(fixedPage), null, new Rect(0, 0, fixedPage.Width, fixedPage.Height));
                 }
                 bitmap.Render(dv);
 
@@ -690,25 +670,19 @@ public partial class AddSalePageViewModel : ViewModelBase
                 encoder.Save(ms);
                 ms.Position = 0;
 
-                // 3. PDF Sahifasini A4 o'lchamda yaratish (Qat'iy A4)
                 var pdfPage = pdfDoc.AddPage();
-                // A4 standarti: 210mm x 297mm
-                pdfPage.Width = XUnit.FromMillimeter(210);
-                pdfPage.Height = XUnit.FromMillimeter(297);
+                pdfPage.Width = PdfSharp.Drawing.XUnit.FromMillimeter(210);
+                pdfPage.Height = PdfSharp.Drawing.XUnit.FromMillimeter(297);
 
-                using var xgfx = XGraphics.FromPdfPage(pdfPage);
-                using var ximg = XImage.FromStream(ms);
+                using var xgfx = PdfSharp.Drawing.XGraphics.FromPdfPage(pdfPage);
+                using var ximg = PdfSharp.Drawing.XImage.FromStream(ms);
 
-                // 4. Rasmni A4 sahifaga to'liq moslab chizish (Stretch emas, Fit)
-                // Sahifa va rasm o'lchami orasidagi nisbatni topamiz
                 double ratio = Math.Min(pdfPage.Width.Point / ximg.PointWidth, pdfPage.Height.Point / ximg.PointHeight);
                 double w = ximg.PointWidth * ratio;
                 double h = ximg.PointHeight * ratio;
 
-                // Markazga joylashtirish
                 xgfx.DrawImage(ximg, (pdfPage.Width.Point - w) / 2, (pdfPage.Height.Point - h) / 2, w, h);
             }
-
             pdfDoc.Save(path);
         }
         catch (Exception ex)
@@ -727,7 +701,6 @@ public partial class AddSalePageViewModel : ViewModelBase
         EditingSaleId = 0;
         ClearCurrentSaleItem();
     }
-
     private void ClearCurrentSaleItem()
     {
         CurrentSaleItem.PropertyChanged -= SaleItemPropertyChanged;

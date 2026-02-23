@@ -35,8 +35,8 @@
                 Background="Transparent"
                 BorderThickness="0"
                 FontSize="14"
-                Style="{x:Null}"
                 IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                Style="{x:Null}"
                 Text="{Binding Text, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
         </Border>
     </Grid>

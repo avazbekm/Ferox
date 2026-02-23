@@ -44,7 +44,7 @@ public partial class SalesHistoryReportViewModel : ViewModelBase
         // Har qanday filtr o‘zgarsa → darrov filtrla
         PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName is nameof(SelectedCustomer) or nameof(SelectedProduct) or nameof(SelectedCode) or nameof(BeginDate) or nameof(EndDate))
+            if (e.PropertyName is nameof(SelectedCustomer) or nameof(SelectedProduct) or nameof(SelectedCode))
                 ApplyFilters();
         };
 
@@ -56,9 +56,7 @@ public partial class SalesHistoryReportViewModel : ViewModelBase
     [RelayCommand]
     public async Task LoadAsync()
     {
-        IsLoading = true;
         allItems.Clear();
-        FilteredItems.Clear();
 
         var request = new FilteringRequest
         {
@@ -127,7 +125,7 @@ public partial class SalesHistoryReportViewModel : ViewModelBase
     {
         if (!FilteredItems.Any())
         {
-            MessageBox.Show("Ko‘rsatish uchun ma'lumot yo‘q.", "Eslatma", MessageBoxButton.OK, MessageBoxImage.Information);
+            InfoMessage = "Ko‘rsatish uchun ma'lumot yo‘q.";
             return;
         }
 
@@ -157,7 +155,7 @@ public partial class SalesHistoryReportViewModel : ViewModelBase
     {
         if (!FilteredItems.Any())
         {
-            MessageBox.Show("Chop etish uchun ma’lumot yo‘q.", "Eslatma", MessageBoxButton.OK, MessageBoxImage.Information);
+            InfoMessage = "Chop etish uchun ma’lumot yo‘q.";
             return;
         }
 
@@ -262,19 +260,6 @@ public partial class SalesHistoryReportViewModel : ViewModelBase
 
         if (SelectedCode != null)
             result = result.Where(x => x.Code == SelectedCode.Code);
-
-        if (BeginDate == EndDate)
-        {
-            var begin = BeginDate.Date;
-            var end = EndDate.Date.AddDays(1);
-            result = result.Where(x => x.Date >= begin && x.Date < end);
-        }
-        else if (BeginDate != EndDate)
-        {
-            var begin = BeginDate.Date;
-            var end = EndDate.Date;
-            result = result.Where(x => x.Date >= begin && x.Date <= end);
-        }
 
         FilteredItems = new ObservableCollection<SaleHistoryItemViewModel>(result);
     }
