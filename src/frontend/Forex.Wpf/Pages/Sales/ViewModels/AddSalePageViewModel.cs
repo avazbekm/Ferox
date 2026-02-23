@@ -30,6 +30,8 @@ public partial class AddSalePageViewModel : ViewModelBase
     private readonly ForexClient client;
     private readonly IMapper mapper;
     private readonly INavigationService navigation;
+    private static readonly Dictionary<string, BitmapSource> _imageCache = new();
+    private static readonly HttpClient _httpClient = new HttpClient();
 
     // Initialization state tracking
     private Task? _initializationTask;
@@ -295,37 +297,7 @@ public partial class AddSalePageViewModel : ViewModelBase
         }
     }
 
-    private static readonly Dictionary<string, BitmapSource> _imageCache = new();
-
-    private BitmapSource GetOptimizedImage(string path)
-    {
-        if (string.IsNullOrEmpty(path) || !File.Exists(path)) return null;
-
-        if (_imageCache.ContainsKey(path)) return _imageCache[path];
-
-        try
-        {
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(path);
-            // Senior tip: Rasmni PDF katagi uchun kichraytirib yuklash (Xotirani tejaydi)
-            bitmap.DecodePixelWidth = 100;
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
-            bitmap.EndInit();
-            bitmap.Freeze(); // Multi-threading uchun muhim
-
-            _imageCache[path] = bitmap;
-            return bitmap;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-
-    public void ShowPrintPreview()
+    public async void ShowPrintPreview()
     {
         if (SaleItems == null || !SaleItems.Any())
         {
@@ -333,78 +305,88 @@ public partial class AddSalePageViewModel : ViewModelBase
             return;
         }
 
-        var fixedDoc = CreateFixedDocumentForPrint();
-
-        var toolbar = new StackPanel
+        try
         {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(10)
-        };
+            // 1. Rasmlarni parallel yuklash (Tezlik siri)
+            var uniqueUrls = SaleItems
+                .Select(i => i.Product.DisplayImagePath)
+                .Where(url => !string.IsNullOrEmpty(url) && !_imageCache.ContainsKey(url))
+                .Distinct()
+                .ToList();
 
-        var shareButton = new Button
-        {
-            Content = "Telegram’da ulashish",
-            Padding = new Thickness(15, 5, 15, 5),
-            Background = new SolidColorBrush(Color.FromRgb(0, 136, 204)),
-            Foreground = Brushes.White,
-            FontSize = 14,
-            FontWeight = FontWeights.Bold,
-            Cursor = Cursors.Hand,
-            BorderThickness = new Thickness(0)
-        };
-
-        shareButton.Click += (s, e) =>
-        {
-            try
+            if (uniqueUrls.Any())
             {
-                string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string folder = Path.Combine(docs, "Forex", "Savdolar");
-                Directory.CreateDirectory(folder);
-
-                string customerName = (Customer?.Name ?? "Naqd").Replace(" ", "_");
-                string fileName = $"Savdo_{customerName}_{DateTime.Now:dd_MM_yyyy}.pdf";
-                string path = Path.Combine(folder, fileName);
-
-                SaveFixedDocumentToPdf(fixedDoc, path, 96);
-
-                if (File.Exists(path))
+                // Barcha rasmlarni bir vaqtda yuklashni boshlaymiz
+                var tasks = uniqueUrls.Select(async url =>
                 {
-                    Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true });
-                    Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
-                }
+                    var bitmap = await DownloadBitmapAsync(url);
+                    if (bitmap != null) _imageCache[url] = bitmap;
+                });
+                await Task.WhenAll(tasks);
             }
-            catch (Exception ex)
+
+            // 2. Hujjatni yaratish
+            var fixedDoc = CreateFixedDocumentForPrint();
+
+            // 3. UI qismlari
+            var toolbar = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(10) };
+            var shareButton = new Button
             {
-                MessageBox.Show($"Ulashishda xatolik: {ex.Message}");
-            }
-        };
+                Content = "Telegram’da ulashish",
+                Padding = new Thickness(15, 5, 15, 5),
+                Background = new SolidColorBrush(Color.FromRgb(0, 136, 204)),
+                Foreground = Brushes.White,
+                FontSize = 14,
+                FontWeight = FontWeights.Bold,
+                Cursor = Cursors.Hand,
+                BorderThickness = new Thickness(0)
+            };
 
-        toolbar.Children.Add(shareButton);
+            shareButton.Click += (s, e) =>
+            {
+                try
+                {
+                    string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    string folder = Path.Combine(docs, "Forex", "Savdolar");
+                    Directory.CreateDirectory(folder);
 
-        var viewer = new DocumentViewer
+                    string customerName = (Customer?.Name ?? "Naqd").Replace(" ", "_");
+                    string fileName = $"Savdo_{customerName}_{DateTime.Now:dd_MM_yyyy}.pdf";
+                    string path = Path.Combine(folder, fileName);
+
+                    SaveFixedDocumentToPdf(fixedDoc, path, 96);
+
+                    if (File.Exists(path))
+                    {
+                        Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true });
+                        Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+                    }
+                }
+                catch (Exception ex) { MessageBox.Show($"Ulashishda xatolik: {ex.Message}"); }
+            };
+
+            toolbar.Children.Add(shareButton);
+            var viewer = new DocumentViewer { Document = fixedDoc, Margin = new Thickness(8) };
+            var layout = new DockPanel();
+            DockPanel.SetDock(toolbar, Dock.Top);
+            layout.Children.Add(toolbar);
+            layout.Children.Add(viewer);
+
+            var previewWindow = new Window
+            {
+                Title = "Sotuv cheki - Oldindan ko'rish",
+                Width = 1050,
+                Height = 850,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                Content = layout
+            };
+
+            previewWindow.ShowDialog();
+        }
+        catch (Exception ex)
         {
-            Document = fixedDoc,
-            Margin = new Thickness(8)
-        };
-
-        var layout = new DockPanel();
-        DockPanel.SetDock(toolbar, Dock.Top);
-        layout.Children.Add(toolbar);
-        layout.Children.Add(viewer);
-
-        var previewWindow = new Window
-        {
-            Title = "Sotuv cheki - Oldindan ko'rish",
-            Width = 1050, // Rasm ustuni uchun biroz kengaytirdik
-            Height = 850,
-            WindowStartupLocation = WindowStartupLocation.CenterScreen,
-            WindowStyle = WindowStyle.SingleBorderWindow,
-            ResizeMode = ResizeMode.CanResizeWithGrip,
-            Content = layout
-        };
-
-        previewWindow.ShowDialog();
+            MessageBox.Show($"Xatolik: {ex.Message}");
+        }
     }
     private FixedDocument CreateFixedDocumentForPrint()
     {
@@ -557,151 +539,54 @@ public partial class AddSalePageViewModel : ViewModelBase
         }
         return fixedDoc;
     }
-
-    private static readonly HttpClient _httpClient = new HttpClient();
-
-    private BitmapSource GetImageFromMinio(string url)
+    private async Task<BitmapSource> DownloadBitmapAsync(string url)
     {
-        if (string.IsNullOrWhiteSpace(url)) return null;
-
         try
         {
-            // 1. Agar rasm URL bo'lsa (MinIO manzili)
-            if (url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-            {
-                // Senior tip: GetByteArrayAsync rasmni to'liq yuklab bo'lmaguncha kutadi
-                var task = Task.Run(() => _httpClient.GetByteArrayAsync(url));
-                task.Wait(TimeSpan.FromSeconds(5)); // 5 soniya kutish (timeout)
-
-                if (!task.IsCompletedSuccessfully) return null;
-
-                byte[] imageData = task.Result;
-                using (var ms = new MemoryStream(imageData))
-                {
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad; // Rasmni xotiraga "muhrlaydi"
-                    bitmap.StreamSource = ms;
-                    bitmap.DecodePixelWidth = 120; // Katakcha kichik bo'lgani uchun o'lchamni cheklaymiz
-                    bitmap.EndInit();
-                    bitmap.Freeze(); // UI threaddan tashqarida ham xavfsiz ishlash uchun
-                    return bitmap;
-                }
-            }
-            // 2. Agar rasm lokal fayl bo'lsa
-            else if (File.Exists(url))
+            byte[] data = await _httpClient.GetByteArrayAsync(url);
+            using (var ms = new MemoryStream(data))
             {
                 var bitmap = new BitmapImage();
                 bitmap.BeginInit();
-                bitmap.UriSource = new Uri(url, UriKind.Absolute);
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.DecodePixelWidth = 120;
+                bitmap.StreamSource = ms;
+                bitmap.DecodePixelWidth = 150; // PDF sifati va hajmi uchun optimal
                 bitmap.EndInit();
                 bitmap.Freeze();
                 return bitmap;
             }
         }
-        catch (Exception ex)
-        {
-            // Xatolikni kuzatish uchun (Output oynasida ko'rinadi)
-            System.Diagnostics.Debug.WriteLine($"MinIO rasm xatosi: {ex.Message}");
-        }
-
-        return null;
+        catch { return null; }
     }
     private Border CreateImageCell(string imagePath)
     {
-        // Katakcha kvadrat shaklda (PDF uchun ideal o'lcham)
         var border = new Border
         {
-            Width = 65,
-            Height = 65,
-            BorderBrush = Brushes.LightGray,
-            BorderThickness = new Thickness(0.5),
+            Width = 70, // Kvadrat joy
+            Height = 70,
+            BorderBrush = new SolidColorBrush(Color.FromRgb(230, 230, 230)),
+            BorderThickness = new Thickness(1),
             Background = Brushes.White,
             VerticalAlignment = VerticalAlignment.Center,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Padding = new Thickness(1)
+            HorizontalAlignment = HorizontalAlignment.Center
         };
 
-        var bitmap = GetImageFromMinio(imagePath);
-
-        if (bitmap != null)
+        if (!string.IsNullOrEmpty(imagePath) && _imageCache.TryGetValue(imagePath, out var bitmap))
         {
             var img = new Image
             {
                 Source = bitmap,
-                Stretch = Stretch.Uniform, // Rasm cho'zilib ketmaydi, kvadrat ichiga moslashadi
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center
+                Stretch = Stretch.Uniform, // Seniorlar tanlovi: proporsiya buzilmaydi
+                Margin = new Thickness(2)
             };
-
-            // Render sifatini oshirish (Senior tip)
             RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.HighQuality);
             border.Child = img;
         }
         else
         {
-            // Rasm yo'q bo'lsa, chiroyliroq fallback ko'rsatamiz
-            border.Child = new TextBlock
-            {
-                Text = "Rasm yo'q",
-                FontSize = 7,
-                Foreground = Brushes.Silver,
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
+            border.Child = new TextBlock { Text = "Rasm yo'q", FontSize = 8, Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
         }
-
         return border;
-    }
-    private BitmapSource GetImageFromUrl(string url)
-    {
-        if (string.IsNullOrWhiteSpace(url)) return null;
-
-        // Agar bu lokal fayl bo'lsa (masalan C:\...)
-        if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-        {
-            if (File.Exists(url))
-            {
-                var bitmap = new BitmapImage(new Uri(url));
-                bitmap.Freeze();
-                return bitmap;
-            }
-            return null;
-        }
-
-        try
-        {
-            // Senior yondashuv: URL dan rasmni yuklash
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(url, UriKind.Absolute);
-            // Internetdan yuklanayotganda dastur qotib qolmasligi uchun
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.EndInit();
-            bitmap.Freeze(); // UI thread bloklanmasligi uchun
-            return bitmap;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Rasm yuklashda xato: {ex.Message}");
-            return null;
-        }
-    }
-
-    // Yordamchi metod: Rasm o'rniga matn chiqarish
-    private TextBlock CreateFallbackText(string text)
-    {
-        return new TextBlock
-        {
-            Text = text,
-            FontSize = 7,
-            Foreground = Brushes.Red,
-            VerticalAlignment = VerticalAlignment.Center,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            TextWrapping = TextWrapping.Wrap
-        };
     }
     private void AddCellToGrid(Grid grid, string text, int row, int col, bool isHeader, TextAlignment align)
     {
