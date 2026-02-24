@@ -287,7 +287,7 @@ public partial class AddSalePageViewModel : ViewModelBase
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    ShowPrintPreview();
+                   await ShowPrintPreview();
                 }
             }
             else ErrorMessage = response.Message ?? "Savdoni ro'yxatga olishda xatolik!";
@@ -300,7 +300,7 @@ public partial class AddSalePageViewModel : ViewModelBase
         }
     }
 
-    public async void ShowPrintPreview()
+    public async Task ShowPrintPreview()
     {
         if (SaleItems == null || !SaleItems.Any())
         {
