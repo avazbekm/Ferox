@@ -301,19 +301,19 @@
             <controls:FloatingImageComboBox
                 x:Name="cbxProduct"
                 Grid.Column="0"
-                Margin="2,0"
                 Grid.ColumnSpan="2"
-                ItemsSource="{Binding AvailableProducts}"
-                SelectedItem="{Binding CurrentSaleItem.Product}"
-                Label="Mahsulot"
+                Margin="2,0"
+                ImageHeight="50"
+                ImageMemberPath="ImagePath"
+                ImageWidth="50"
                 IsEditable="True"
                 IsSearchEnabled="True"
-                ImageMemberPath="ImagePath"
+                ItemsSource="{Binding AvailableProducts}"
+                Label="Mahsulot"
                 PrimaryTextMemberPath="Code"
                 SecondaryTextMemberPath="Name"
-                ShowImage="True"
-                ImageWidth="50"
-                ImageHeight="50" />
+                SelectedItem="{Binding CurrentSaleItem.Product}"
+                ShowImage="True" />
 
             <!--  Razmer  -->
             <controls:FloatingComboBox
@@ -359,7 +359,7 @@
                 IsEnabled="False"
                 Label="Jami summa"
                 Text="{Binding CurrentSaleItem.Amount, UpdateSourceTrigger=PropertyChanged}" />
-			<Button
+            <Button
                 x:Name="btnAdd"
                 Grid.Column="7"
                 Height="30"
@@ -370,16 +370,16 @@
                 Content="Qo'shish"
                 FontSize="14" />
 
-		</Grid>
+        </Grid>
         <Grid Grid.Row="3" Margin="0,5,0,5">
             <DataGrid
                 x:Name="dataGrid"
                 AlternatingRowBackground="#F9F9F9"
                 AutoGenerateColumns="False"
+                BorderBrush="LightGray"
+                BorderThickness="2"
                 CanUserAddRows="False"
                 CanUserDeleteRows="False"
-                BorderThickness="2"
-                BorderBrush="LightGray"
                 FontSize="14"
                 HeadersVisibility="Column"
                 IsReadOnly="True"
