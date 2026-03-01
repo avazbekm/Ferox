@@ -222,7 +222,7 @@ public partial class HomePage : Page
     {
         profileEditOverlay.Visibility = Visibility.Collapsed;
         mainContent.IsEnabled = true;
-        
+
         // Restore original window size
         this.ResizeWindow(810, 580, always: true);
 

@@ -255,6 +255,7 @@
                                                     Padding="0"
                                                     Background="#8BB8E8"
                                                     Click="BtnPrintSale_Click"
+                                                    IsEnabled="{Binding DataContext.IsLoading, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource InverseBoolToBoolConverter}}"
                                                     Tag="{Binding}"
                                                     ToolTip="Chop etish">
                                                     <md:PackIcon
@@ -274,6 +275,7 @@
                                                     FontSize="12"
                                                     FontWeight="Bold"
                                                     Foreground="White"
+                                                    IsEnabled="{Binding DataContext.IsLoading, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource InverseBoolToBoolConverter}}"
                                                     Tag="{Binding}"
                                                     ToolTip="Tahrirlash">
                                                     <md:PackIcon
@@ -293,6 +295,7 @@
                                                     FontSize="12"
                                                     FontWeight="Bold"
                                                     Foreground="White"
+                                                    IsEnabled="{Binding DataContext.IsLoading, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource InverseBoolToBoolConverter}}"
                                                     ToolTip="O'chirish">
                                                     <md:PackIcon
                                                         Width="16"

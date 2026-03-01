@@ -16,6 +16,7 @@ using Mapster;
 using MapsterMapper;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Data;
 
 public partial class ProductPageViewModel : ViewModelBase
 {
@@ -25,9 +26,16 @@ public partial class ProductPageViewModel : ViewModelBase
     private int backupIndex = -1;
     private int currentPage = 1;
     private bool hasMoreItems = true;
+    private bool _suppressFilter;
     private const int PageSize = 35;
     [ObservableProperty] private bool isNewProductMode;
     [ObservableProperty] private ProductViewModel currentProduct;
+    [ObservableProperty] private DateTime? filterFromDate;
+    [ObservableProperty] private DateTime? filterToDate;
+    [ObservableProperty] private string searchText = string.Empty;
+
+    private readonly ObservableCollection<ProductEntryViewModel> _productEntries = [];
+    public ICollectionView ProductEntriesView { get; }
 
     public ProductPageViewModel(IMapper mapper, ForexClient client)
     {
@@ -35,11 +43,12 @@ public partial class ProductPageViewModel : ViewModelBase
         this.client = client;
         CurrentProductEntry = new();
         CurrentProduct = new();
+        ProductEntriesView = CollectionViewSource.GetDefaultView(_productEntries);
+        ProductEntriesView.Filter = obj => obj is ProductEntryViewModel e && MatchesSearch(e);
         _ = LoadDataAsync();
     }
 
     [ObservableProperty] private ObservableCollection<ProductViewModel> availableProducts = [];
-    [ObservableProperty] private ObservableCollection<ProductEntryViewModel> productEntries = [];
     [ObservableProperty] private ProductEntryViewModel? selectedProductEntry;
     [ObservableProperty] private string productType = string.Empty;
     [ObservableProperty] private string productCode = string.Empty;
@@ -74,10 +83,20 @@ public partial class ProductPageViewModel : ViewModelBase
             PageSize = PageSize
         };
 
+        if (FilterFromDate.HasValue || FilterToDate.HasValue)
+        {
+            var dateFilters = new List<string>();
+            if (FilterFromDate.HasValue)
+                dateFilters.Add($">={FilterFromDate.Value:dd.MM.yyyy}");
+            if (FilterToDate.HasValue)
+                dateFilters.Add($"<{FilterToDate.Value.AddDays(1):dd.MM.yyyy}");
+            request.Filters["date"] = dateFilters;
+        }
+
         var response = await client.ProductEntries.Filter(request).Handle(l => IsLoading = l);
         if (response.IsSuccess)
         {
-            ProductEntries.AddRange(mapper.Map<ObservableCollection<ProductEntryViewModel>>(response.Data));
+            _productEntries.AddRange(mapper.Map<ObservableCollection<ProductEntryViewModel>>(response.Data));
             if (response.Data.Count < PageSize) hasMoreItems = false;
         }
         else ErrorMessage = response.Message ?? "Kirim tarixini yuklashda xatolik!";
@@ -89,6 +108,32 @@ public partial class ProductPageViewModel : ViewModelBase
         if (IsLoading || !hasMoreItems) return;
 
         currentPage++;
+        await LoadProductEntriesAsync();
+    }
+
+    partial void OnFilterFromDateChanged(DateTime? value) => _ = ApplyDateFilter();
+    partial void OnFilterToDateChanged(DateTime? value) => _ = ApplyDateFilter();
+    partial void OnSearchTextChanged(string value) => ProductEntriesView.Refresh();
+
+    [RelayCommand]
+    private async Task ClearDateFilter()
+    {
+        _suppressFilter = true;
+        FilterFromDate = null;
+        FilterToDate = null;
+        _suppressFilter = false;
+        currentPage = 1;
+        hasMoreItems = true;
+        _productEntries.Clear();
+        await LoadProductEntriesAsync();
+    }
+
+    private async Task ApplyDateFilter()
+    {
+        if (_suppressFilter) return;
+        currentPage = 1;
+        hasMoreItems = true;
+        _productEntries.Clear();
         await LoadProductEntriesAsync();
     }
 
@@ -229,10 +274,10 @@ public partial class ProductPageViewModel : ViewModelBase
                 updatedEntry.ProductType = CurrentProduct.SelectedType!;
                 updatedEntry.ProductType.Product = CurrentProduct;
 
-                if (backupIndex >= 0 && backupIndex < ProductEntries.Count)
-                    ProductEntries[backupIndex] = updatedEntry;
+                if (backupIndex >= 0 && backupIndex < _productEntries.Count)
+                    _productEntries[backupIndex] = updatedEntry;
                 else
-                    ProductEntries.Add(updatedEntry);
+                    _productEntries.Add(updatedEntry);
 
                 SuccessMessage = "Muvaffaqiyatli yangilandi!";
                 CleanupAfterSave();
@@ -249,7 +294,7 @@ public partial class ProductPageViewModel : ViewModelBase
                 newEntry.ProductType = CurrentProduct.SelectedType!;
                 newEntry.ProductType.Product = CurrentProduct;
 
-                ProductEntries.Insert(0, newEntry);
+                _productEntries.Insert(0, newEntry);
                 SuccessMessage = "Muvaffaqiyatli saqlandi!";
 
                 if (IsNewProductMode)
@@ -273,7 +318,7 @@ public partial class ProductPageViewModel : ViewModelBase
         IsEditing = true;
         IsNewProductMode = false;
 
-        backupIndex = ProductEntries.IndexOf(SelectedProductEntry);
+        backupIndex = _productEntries.IndexOf(SelectedProductEntry);
         backupEntry = mapper.Map<ProductEntryViewModel>(SelectedProductEntry);
 
         CurrentProductEntry = mapper.Map<ProductEntryViewModel>(SelectedProductEntry);
@@ -303,7 +348,7 @@ public partial class ProductPageViewModel : ViewModelBase
             ProductCode = string.Empty;
         }
 
-        ProductEntries.Remove(SelectedProductEntry);
+        _productEntries.Remove(SelectedProductEntry);
         SelectedProductEntry = null;
     }
 
@@ -318,7 +363,7 @@ public partial class ProductPageViewModel : ViewModelBase
 
         if (response.IsSuccess)
         {
-            ProductEntries.Remove(entry);
+            _productEntries.Remove(entry);
             SuccessMessage = "Muvaffaqiyatli o'chirildi!";
         }
         else
@@ -332,10 +377,10 @@ public partial class ProductPageViewModel : ViewModelBase
     {
         if (IsEditing && backupEntry is not null)
         {
-            if (backupIndex >= 0 && backupIndex <= ProductEntries.Count)
-                ProductEntries.Insert(backupIndex, backupEntry);
+            if (backupIndex >= 0 && backupIndex <= _productEntries.Count)
+                _productEntries.Insert(backupIndex, backupEntry);
             else
-                ProductEntries.Add(backupEntry);
+                _productEntries.Add(backupEntry);
         }
 
         CleanupAfterSave();
@@ -390,6 +435,14 @@ public partial class ProductPageViewModel : ViewModelBase
             if (CurrentProductEntry.BundleCount.HasValue && CurrentProductEntry.BundleItemCount.HasValue)
                 CurrentProductEntry.Count = CurrentProductEntry.BundleCount * CurrentProductEntry.BundleItemCount;
         }
+    }
+
+    private bool MatchesSearch(ProductEntryViewModel e)
+    {
+        if (string.IsNullOrWhiteSpace(SearchText)) return true;
+        return e.ProductType?.Product?.Name?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) == true
+            || e.ProductType?.Product?.Code?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) == true
+            || e.ProductType?.Type?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) == true;
     }
 
     #endregion Helpers

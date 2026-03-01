@@ -16,6 +16,7 @@
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
 		</Grid.RowDefinitions>
 
@@ -195,7 +196,49 @@
                 FontSize="14" />
 		</Grid>
 
-		<DataGrid Grid.Row="2"
+		<!--  Sana bo'yicha filter + qidiruv  -->
+		<StackPanel Grid.Row="2" Margin="0,4,0,4" Orientation="Horizontal" VerticalAlignment="Center">
+			<Label Content="Dan:" VerticalAlignment="Center" FontSize="13" Padding="0,0,4,0" />
+			<controls:UserCalendar
+                x:Name="filterFrom"
+                Width="120"
+                Height="32"
+                AllowEmpty="True"
+                Hint="dd.MM.yyyy"
+                FontSize="14"
+                SelectedDate="{Binding FilterFromDate, Mode=TwoWay}" />
+			<Label Content="Gacha:" VerticalAlignment="Center" FontSize="13" Padding="8,0,4,0" />
+			<controls:UserCalendar
+                x:Name="filterTo"
+                Width="120"
+                Height="32"
+                AllowEmpty="True"
+                Hint="dd.MM.yyyy"
+                FontSize="14"
+                SelectedDate="{Binding FilterToDate, Mode=TwoWay}" />
+			<Button
+                Margin="8,0,0,0"
+                Height="30"
+                Padding="10,0"
+                md:ButtonAssist.CornerRadius="4"
+                Background="#EF6C00"
+                BorderThickness="0"
+                Command="{Binding ClearDateFilterCommand}"
+                Content="✕ Filterni tozalash"
+                FontSize="13"
+                Foreground="White" />
+			<Label Content="🔍 Qidiruv:" VerticalAlignment="Center" FontSize="13" Padding="10,0,4,0" />
+			<TextBox
+                Margin="0"
+                Width="200"
+                Height="32"
+                Padding="6,0"
+                VerticalContentAlignment="Center"
+                FontSize="13"
+                Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+		</StackPanel>
+
+		<DataGrid Grid.Row="3"
                 x:Name="dataGrid"
                 AutoGenerateColumns="False"
                 BorderThickness="2"
@@ -204,7 +247,7 @@
                 FontSize="14"
                 VirtualizingStackPanel.VirtualizationMode="Standard"
                 EnableRowVirtualization="True"
-                ItemsSource="{Binding ProductEntries}"
+                ItemsSource="{Binding ProductEntriesView}"
                 SelectedItem="{Binding SelectedProductEntry}"
                 SelectionMode="Single"
                 SelectionUnit="FullRow"

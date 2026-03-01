@@ -9,9 +9,8 @@ using Forex.ClientService.Models.Requests;
 using Forex.Wpf.Common.Interfaces;
 using Forex.Wpf.Pages.Common;
 using Forex.Wpf.ViewModels;
+using Forex.Wpf.Windows;
 using MapsterMapper;
-using PdfSharp.Drawing;
-using PdfSharp.Pdf;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -119,9 +118,13 @@ public partial class AddSalePageViewModel : ViewModelBase
 
         var productResidues = mapper.Map<ObservableCollection<ProductResidueViewModel>>(response.Data!);
 
-        var allTypes = productResidues.Select(pr => pr.ProductType)
-            .Where(pt => pt is not null && pt.Product is not null)
-            .ToList();
+        var allTypes = productResidues.Select(pr =>
+        {
+            pr.ProductType.AvailableCount = pr.Count;
+            return pr.ProductType;
+        })
+        .Where(pt => pt is not null && pt.Product is not null)
+        .ToList();
 
         var grouped = allTypes.GroupBy(pt => pt.Product.Id);
 
@@ -144,7 +147,7 @@ public partial class AddSalePageViewModel : ViewModelBase
     #region Commands
 
     [RelayCommand]
-    private void Add()
+    private async Task Add()
     {
         if (CurrentSaleItem.Product is null ||
             CurrentSaleItem.BundleCount == null ||
@@ -153,6 +156,44 @@ public partial class AddSalePageViewModel : ViewModelBase
         {
             WarningMessage = "Mahsulot tanlanmagan yoki miqdor noto'g'ri!";
             return;
+        }
+
+        int needed = CurrentSaleItem.TotalCount ?? 0;
+
+        bool isDuplicate = CurrentSaleItem.ProductType.Id > 0
+            ? SaleItems.Any(s => s.ProductType?.Id == CurrentSaleItem.ProductType.Id)
+            : SaleItems.Any(s => s.ProductType?.Type == CurrentSaleItem.ProductType.Type
+                              && s.Product?.Id == CurrentSaleItem.Product?.Id);
+        if (isDuplicate)
+        {
+            WarningMessage = "Bu turdagi mahsulot allaqachon ro'yxatda bor!";
+            return;
+        }
+
+        while (CurrentSaleItem.ProductType.AvailableCount < needed)
+        {
+            int currentStock = CurrentSaleItem.ProductType.AvailableCount;
+            var msgResult = MessageBox.Show(
+                $"Maxsulot yetarli emas, omborda: {currentStock}, so'ralmoqda: {needed}, kirim qilmoqchimisiz?",
+                "Yetarli emas",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (msgResult == MessageBoxResult.No)
+                return;
+
+            var window = new QuickProductEntryWindow(
+                CurrentSaleItem.Product,
+                CurrentSaleItem.ProductType,
+                needed,
+                currentStock,
+                Date,
+                client);
+
+            if (window.ShowDialog() != true)
+                return;
+
+            CurrentSaleItem.ProductType.AvailableCount += window.EnteredCount;
         }
 
         SaleItemViewModel item = new()
@@ -165,6 +206,7 @@ public partial class AddSalePageViewModel : ViewModelBase
             TotalCount = CurrentSaleItem.TotalCount,
         };
 
+        item.ProductType.AvailableCount -= (item.TotalCount ?? 0);
         item.PropertyChanged += SaleItemPropertyChanged;
         SaleItems.Add(item);
 
@@ -244,6 +286,12 @@ public partial class AddSalePageViewModel : ViewModelBase
             return;
         }
 
+        if (Customer is null)
+        {
+            WarningMessage = "Mijoz tanlanmagan!";
+            return;
+        }
+
         SaleRequest request = new()
         {
             Date = Date == DateTime.Today ? DateTime.Now : Date,
@@ -285,7 +333,7 @@ public partial class AddSalePageViewModel : ViewModelBase
                     MessageBoxImage.Question);
 
                 if (result == MessageBoxResult.Yes)
-                    ShowPrintPreview();
+                    await ShowPrintPreview();
             }
             else ErrorMessage = response.Message ?? "Savdoni ro'yxatga olishda xatolik!";
         }
@@ -297,7 +345,7 @@ public partial class AddSalePageViewModel : ViewModelBase
         }
     }
 
-    public async void ShowPrintPreview()
+    public async Task ShowPrintPreview()
     {
         if (SaleItems == null || !SaleItems.Any())
         {
@@ -756,7 +804,7 @@ public partial class AddSalePageViewModel : ViewModelBase
     /// <summary>
     /// Loads sale data for editing. Ensures initialization is complete first.
     /// </summary>
-    public async Task LoadSaleForEditAsync(long saleId)
+    public async Task LoadSaleForEditAsync(long saleId, bool notifyOnLoad = true)
     {
         // Ma'lumotlar yuklanishini kutamiz
         await EnsureInitializedAsync();
@@ -836,7 +884,8 @@ public partial class AddSalePageViewModel : ViewModelBase
         }
 
         RecalculateTotals();
-        SuccessMessage = "Savdo tahrirlash uchun yuklandi.";
+        if (notifyOnLoad)
+            SuccessMessage = "Savdo tahrirlash uchun yuklandi.";
     }
 
     #endregion
