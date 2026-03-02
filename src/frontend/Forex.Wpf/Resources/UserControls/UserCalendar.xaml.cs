@@ -13,7 +13,7 @@ public partial class UserCalendar : UserControl
     public static readonly DependencyProperty SelectedDateProperty =
         DependencyProperty.Register("SelectedDate", typeof(DateTime?), typeof(UserCalendar), new PropertyMetadata(null, OnSelectedDateChanged));
 
-    private static readonly Regex _dateInputRegex = new Regex("[0-8]", RegexOptions.Compiled);
+    private static readonly Regex _dateInputRegex = new Regex(@"\d", RegexOptions.Compiled);
     private static readonly Regex _dateFormatRegex = new Regex(@"^(?:\d{2}\.\d{2}\.\d{2,4})?$", RegexOptions.Compiled);
 
     public UserCalendar()
@@ -27,10 +27,19 @@ public partial class UserCalendar : UserControl
     public static readonly DependencyProperty HintProperty =
     DependencyProperty.Register("Hint", typeof(string), typeof(UserCalendar), new PropertyMetadata(""));
 
+    public static readonly DependencyProperty AllowEmptyProperty =
+        DependencyProperty.Register("AllowEmpty", typeof(bool), typeof(UserCalendar), new PropertyMetadata(false));
+
     public string Hint
     {
         get => (string)GetValue(HintProperty);
         set => SetValue(HintProperty, value);
+    }
+
+    public bool AllowEmpty
+    {
+        get => (bool)GetValue(AllowEmptyProperty);
+        set => SetValue(AllowEmptyProperty, value);
     }
 
     public DateTime? SelectedDate
@@ -41,21 +50,19 @@ public partial class UserCalendar : UserControl
 
     private static void OnSelectedDateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is UserCalendar userCalendar && e.NewValue is DateTime newDate)
-        {
+        if (d is not UserCalendar userCalendar) return;
+        if (e.NewValue is DateTime newDate)
             userCalendar.input.Text = newDate.ToString("dd.MM.yyyy");
-        }
-        UserCalendar userCal = (d as UserCalendar)!;
-        userCal.input.Focus();
-        userCal.input.SelectAll();
+        else if (userCalendar.AllowEmpty)
+            userCalendar.input.Text = string.Empty;
+        userCalendar.input.Focus();
+        userCalendar.input.SelectAll();
     }
 
     private void SetDefaultDate()
     {
-        if (SelectedDate == null)
-        {
+        if (!AllowEmpty && SelectedDate == null)
             SelectedDate = DateTime.Now.Date;
-        }
     }
 
     private void DateTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)

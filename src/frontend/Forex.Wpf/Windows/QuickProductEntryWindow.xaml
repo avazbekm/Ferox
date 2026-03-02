@@ -1,0 +1,105 @@
+<Window
+    x:Class="Forex.Wpf.Windows.QuickProductEntryWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:controls="clr-namespace:Forex.Wpf.Resources.UserControls"
+    mc:Ignorable="d"
+    Title="Tezkor kirim"
+    Width="350"
+    Height="420"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    WindowStyle="SingleBorderWindow">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="140" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!--  Info rows  -->
+        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Mahsulot:" />
+        <TextBlock x:Name="txtProductName" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="0,5" FontWeight="SemiBold" FontSize="13" TextWrapping="Wrap" />
+
+        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Kodi:" />
+        <TextBlock x:Name="txtProductCode" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="0,5" FontSize="13" />
+
+        <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Turi (razmer):" />
+        <TextBlock x:Name="txtProductType" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="0,5" FontWeight="SemiBold" FontSize="14" />
+
+        <Separator Grid.Row="3" Grid.ColumnSpan="2" Margin="0,5" />
+
+        <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Kerakli miqdor:" />
+        <TextBlock x:Name="txtNeeded" Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" Margin="0,5" Foreground="#E53935" FontWeight="SemiBold" />
+
+        <TextBlock Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Omborda:" />
+        <TextBlock x:Name="txtStock" Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" Margin="0,5" Foreground="#EF6C00" FontWeight="SemiBold" />
+
+        <TextBlock Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="1 qopda:" />
+        <TextBlock x:Name="txtBundleInfo" Grid.Row="6" Grid.Column="1" VerticalAlignment="Center" Margin="0,5" Foreground="#555" />
+
+        <TextBlock Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Kirim sanasi:" />
+        <controls:UserCalendar
+            x:Name="entryDate"
+            Grid.Row="7"
+            Grid.Column="1"
+            Height="32"
+            Margin="0,5"
+            FontSize="14" />
+
+        <TextBlock Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Qop soni:" />
+        <Border Grid.Row="8" Grid.Column="1" Margin="0,5" BorderBrush="#CCC" BorderThickness="1" CornerRadius="4">
+            <TextBox x:Name="txtBundleCount" Padding="3" BorderThickness="0" FontSize="14" />
+        </Border>
+
+        <TextBlock Grid.Row="9" Grid.Column="0" VerticalAlignment="Top" Margin="0,10" Text="Tan narxi:" />
+        <Border Grid.Row="9" Grid.Column="1" Margin="0,5" BorderBrush="#CCC" BorderThickness="1" CornerRadius="4">
+            <TextBox x:Name="txtUnitPrice" Padding="3" BorderThickness="0" FontSize="14" />
+        </Border>
+
+        <StackPanel
+            Grid.Row="10"
+            Grid.ColumnSpan="2"
+            HorizontalAlignment="Right"
+            Margin="0,10,0,0"
+            Orientation="Horizontal">
+            <Button
+                x:Name="btnSave"
+                Width="110"
+                Height="32"
+                Margin="5"
+                Background="#3B82F6"
+                BorderBrush="#2563EB"
+                BorderThickness="1"
+                Click="BtnSave_Click"
+                Content="Saqlash"
+                Foreground="White" />
+            <Button
+                Width="110"
+                Height="32"
+                Margin="5"
+                Background="#E5E7EB"
+                BorderBrush="#D1D5DB"
+                BorderThickness="1"
+                Content="Bekor qilish"
+                Foreground="#333"
+                IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

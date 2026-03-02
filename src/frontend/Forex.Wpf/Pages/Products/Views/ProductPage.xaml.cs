@@ -28,6 +28,11 @@ public partial class ProductPage : Page
             OnFocusRequestReceived(m.ControlName);
         });
 
+        WeakReferenceMessenger.Default.Register<ScrollToDateMessage>(this, (r, m) =>
+        {
+            dataGrid.ScrollIntoView(m.Item);
+        });
+
         Loaded += ProductPage_Loaded;
     }
 
