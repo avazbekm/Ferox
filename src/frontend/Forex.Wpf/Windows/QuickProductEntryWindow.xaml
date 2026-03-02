@@ -7,7 +7,7 @@
     xmlns:controls="clr-namespace:Forex.Wpf.Resources.UserControls"
     mc:Ignorable="d"
     Title="Tezkor kirim"
-    Width="450"
+    Width="350"
     Height="420"
     ResizeMode="NoResize"
     ShowInTaskbar="False"
@@ -16,6 +16,7 @@
 
     <Grid Margin="15">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -50,27 +51,30 @@
         <TextBlock Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Omborda:" />
         <TextBlock x:Name="txtStock" Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" Margin="0,5" Foreground="#EF6C00" FontWeight="SemiBold" />
 
-        <TextBlock Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Kirim sanasi:" />
+        <TextBlock Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="1 qopda:" />
+        <TextBlock x:Name="txtBundleInfo" Grid.Row="6" Grid.Column="1" VerticalAlignment="Center" Margin="0,5" Foreground="#555" />
+
+        <TextBlock Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Kirim sanasi:" />
         <controls:UserCalendar
             x:Name="entryDate"
-            Grid.Row="6"
+            Grid.Row="7"
             Grid.Column="1"
             Height="32"
             Margin="0,5"
             FontSize="14" />
 
-        <TextBlock Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Qop soni:" />
-        <Border Grid.Row="7" Grid.Column="1" Margin="0,5" BorderBrush="#CCC" BorderThickness="1" CornerRadius="4">
-            <TextBox x:Name="txtBundleCount" Padding="4" BorderThickness="0" FontSize="14" />
+        <TextBlock Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Margin="0,5" Text="Qop soni:" />
+        <Border Grid.Row="8" Grid.Column="1" Margin="0,5" BorderBrush="#CCC" BorderThickness="1" CornerRadius="4">
+            <TextBox x:Name="txtBundleCount" Padding="3" BorderThickness="0" FontSize="14" />
         </Border>
 
-        <TextBlock Grid.Row="8" Grid.Column="0" VerticalAlignment="Top" Margin="0,10" Text="Tan narxi:" />
-        <Border Grid.Row="8" Grid.Column="1" Margin="0,5" BorderBrush="#CCC" BorderThickness="1" CornerRadius="4">
-            <TextBox x:Name="txtUnitPrice" Padding="4" BorderThickness="0" FontSize="14" />
+        <TextBlock Grid.Row="9" Grid.Column="0" VerticalAlignment="Top" Margin="0,10" Text="Tan narxi:" />
+        <Border Grid.Row="9" Grid.Column="1" Margin="0,5" BorderBrush="#CCC" BorderThickness="1" CornerRadius="4">
+            <TextBox x:Name="txtUnitPrice" Padding="3" BorderThickness="0" FontSize="14" />
         </Border>
 
         <StackPanel
-            Grid.Row="9"
+            Grid.Row="10"
             Grid.ColumnSpan="2"
             HorizontalAlignment="Right"
             Margin="0,10,0,0"

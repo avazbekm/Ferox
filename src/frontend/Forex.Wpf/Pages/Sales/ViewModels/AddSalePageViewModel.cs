@@ -173,8 +173,18 @@ public partial class AddSalePageViewModel : ViewModelBase
         while (CurrentSaleItem.ProductType.AvailableCount < needed)
         {
             int currentStock = CurrentSaleItem.ProductType.AvailableCount;
+            int bundleItemCount = CurrentSaleItem.ProductType.BundleItemCount ?? 1;
+            int neededBundles = bundleItemCount > 0 ? (int)Math.Ceiling((double)needed / bundleItemCount) : needed;
+            int stockBundles = bundleItemCount > 0 ? currentStock / bundleItemCount : currentStock;
+            int shortfallBundles = Math.Max(0, neededBundles - stockBundles);
+
             var msgResult = MessageBox.Show(
-                $"Maxsulot yetarli emas, omborda: {currentStock}, so'ralmoqda: {needed}, kirim qilmoqchimisiz?",
+                $"Mahsulot yetarli emas!\n\n" +
+                $"So'ralmoqda:  {neededBundles} qop ({needed:N0} ta)\n" +
+                $"Omborda:       {stockBundles} qop ({currentStock:N0} ta)\n" +
+                $"Yetishmaydi:  {shortfallBundles} qop\n" +
+                $"1 qopda:        {bundleItemCount} ta mahsulot\n\n" +
+                $"Kirim qilmoqchimisiz?",
                 "Yetarli emas",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);

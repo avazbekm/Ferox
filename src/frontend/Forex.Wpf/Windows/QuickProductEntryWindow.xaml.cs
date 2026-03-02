@@ -39,8 +39,9 @@ public partial class QuickProductEntryWindow : Window
         int neededBundles = bundleItemCount > 0 ? (int)Math.Ceiling((double)needed / bundleItemCount) : needed;
         int stockBundles = bundleItemCount > 0 ? stock / bundleItemCount : stock;
 
-        txtNeeded.Text = $"{neededBundles} qop  ({needed:N0} dona,  1 qop = {bundleItemCount} dona)";
-        txtStock.Text = $"{stockBundles} qop  ({stock:N0} dona)";
+        txtNeeded.Text = $"{neededBundles} qop ({needed:N0} ta)";
+        txtStock.Text = $"{stockBundles} qop ({stock:N0} ta)";
+        txtBundleInfo.Text = $"{bundleItemCount} ta mahsulot";
 
         entryDate.SelectedDate = _maxDate;
 
