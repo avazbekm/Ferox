@@ -309,12 +309,12 @@ public partial class AddSalePageViewModel : ViewModelBase
             TotalAmount = FinalAmount ?? 0,
             Note = Note,
             SaleItems = [.. SaleItems.Select(item => new SaleItemRequest
-            {
-                ProductTypeId = item.ProductType.Id,
-                BundleCount = (int)item.BundleCount!,
-                UnitPrice = (decimal)item.UnitPrice!,
-                Amount = (decimal)item.Amount!
-            })]
+        {
+            ProductTypeId = item.ProductType.Id,
+            BundleCount = (int)item.BundleCount!,
+            UnitPrice = (decimal)item.UnitPrice!,
+            Amount = (decimal)item.Amount!
+        })]
         };
 
         bool isSuccess;
@@ -336,6 +336,7 @@ public partial class AddSalePageViewModel : ViewModelBase
             {
                 SuccessMessage = $"Savdo muvaffaqiyatli yuborildi. Mahsulotlar soni: {SaleItems.Count}";
 
+                // Mana shu yerda so'raydi va print funksiyasini chaqiradi
                 var result = MessageBox.Show(
                     "Savdo muvaffaqiyatli saqlandi!\n\nChop etishni xohlaysizmi?",
                     "Muvaffaqiyat",
