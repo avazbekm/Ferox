@@ -52,17 +52,17 @@
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
                         <controls:UserCalendar x:Name="dateBegin"
-                            Width="120"
-                            Height="30"
-                            SelectedDate="{Binding BeginDate, Mode=TwoWay}" />
+                                               Width="120"
+                                               Height="30"
+                                               SelectedDate="{Binding BeginDate, Mode=TwoWay}" />
                         <TextBlock
                             Margin="8,0"
                             VerticalAlignment="Center"
                             Text="dan" />
-						<controls:UserCalendar x:Name="dateEnd"
-                            Width="120"
-                            Height="30"
-                            SelectedDate="{Binding EndDate, Mode=TwoWay}" />
+                        <controls:UserCalendar x:Name="dateEnd"
+                                               Width="120"
+                                               Height="30"
+                                               SelectedDate="{Binding EndDate, Mode=TwoWay}" />
                         <TextBlock
                             Margin="3,0"
                             VerticalAlignment="Center"
@@ -76,22 +76,39 @@
                         VerticalAlignment="Center"
                         FontSize="13"
                         Text="Kodi" />
-                    <Border
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        Height="30"
-                        BorderBrush="#CCCCCC"
-                        BorderThickness="2"
-                        CornerRadius="4">
-                        <ComboBox x:Name="cbxCustomer"
-                            Padding="3"
-                            BorderThickness="0"
-                            DisplayMemberPath="Code"
-                            FontSize="14"
-                            IsEditable="True"
-                            ItemsSource="{Binding AvailableProducts}"
-                            SelectedItem="{Binding SelectedCode, Mode=TwoWay}" />
-                    </Border>
+                    <Grid Grid.Row="1" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border
+                            Height="30"
+                            BorderBrush="#CCCCCC"
+                            BorderThickness="2"
+                            CornerRadius="4">
+                            <ComboBox x:Name="cbxCustomer"
+                                      Padding="3"
+                                      BorderThickness="0"
+                                      DisplayMemberPath="Code"
+                                      FontSize="14"
+                                      IsEditable="True"
+                                      ItemsSource="{Binding AvailableProducts}"
+                                      SelectedItem="{Binding SelectedCode, Mode=TwoWay}" />
+                        </Border>
+
+                        <Button x:Name="btnLoad"
+                                Grid.Column="1"
+                                Width="80"
+                                Height="30"
+                                Margin="5,0,0,0"
+                                md:ButtonAssist.CornerRadius="4"
+                                Background="#673AB7"
+                                BorderThickness="0"
+                                Command="{Binding LoadDataCommand}"
+                                Content="Yuklash"
+                                Foreground="White"/>
+                    </Grid>
                 </Grid>
 
                 <!--  TUGMALAR  -->
@@ -100,23 +117,23 @@
                     Margin="20,0,15,0"
                     VerticalAlignment="Center">
                     <Button x:Name="btnPreview"
-                        Height="30"
-                        Margin="0,5"
-                        md:ButtonAssist.CornerRadius="4"
-                        Background="#1976D2"
-                        BorderThickness="0"
-                        Command="{Binding PreviewCommand}"
-                        Content="Ko‘rish"
-                        Foreground="White" />
+                            Height="30"
+                            Margin="0,5"
+                            md:ButtonAssist.CornerRadius="4"
+                            Background="#1976D2"
+                            BorderThickness="0"
+                            Command="{Binding PreviewCommand}"
+                            Content="Ko‘rish"
+                            Foreground="White" />
                     <Button x:Name="btnClear"
-                        Height="30"
-                        Margin="0,5"
-                        md:ButtonAssist.CornerRadius="4"
-                        Background="#3949AB"
-                        BorderThickness="0"
-                        Command="{Binding ClearFilterCommand}"
-                        Content="Tozalash"
-                        Foreground="White" />
+                            Height="30"
+                            Margin="0,5"
+                            md:ButtonAssist.CornerRadius="4"
+                            Background="#3949AB"
+                            BorderThickness="0"
+                            Command="{Binding ClearFilterCommand}"
+                            Content="Tozalash"
+                            Foreground="White" />
                 </StackPanel>
 
                 <StackPanel
@@ -124,23 +141,23 @@
                     Margin="0"
                     VerticalAlignment="Center">
                     <Button x:Name="btnPrint"
-                        Height="30"
-                        Margin="0,5"
-                        md:ButtonAssist.CornerRadius="4"
-                        Background="#00897B"
-                        BorderThickness="0"
-                        Command="{Binding PrintCommand}"
-                        Content="Pechat"
-                        Foreground="White" />
+                            Height="30"
+                            Margin="0,5"
+                            md:ButtonAssist.CornerRadius="4"
+                            Background="#00897B"
+                            BorderThickness="0"
+                            Command="{Binding PrintCommand}"
+                            Content="Pechat"
+                            Foreground="White" />
                     <Button x:Name="btnExport"
-                        Height="30"
-                        Margin="0,5"
-                        md:ButtonAssist.CornerRadius="4"
-                        Background="#2E7D32"
-                        BorderThickness="0"
-                        Command="{Binding ExportToExcelCommand}"
-                        Content="Excel"
-                        Foreground="White" />
+                            Height="30"
+                            Margin="0,5"
+                            md:ButtonAssist.CornerRadius="4"
+                            Background="#2E7D32"
+                            BorderThickness="0"
+                            Command="{Binding ExportToExcelCommand}"
+                            Content="Excel"
+                            Foreground="White" />
                 </StackPanel>
 
                 <!--  QOLDIQLAR  -->

@@ -35,36 +35,55 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    Margin="5,0"
-                    VerticalAlignment="Center"
-                    FontSize="13"
-                    Text="Mijoz" />
-                <Border
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Height="30"
-                    BorderBrush="#CCCCCC"
-                    BorderThickness="2"
-                    CornerRadius="4">
-                    <ComboBox x:Name="cbxCustomer"
-                        Padding="3"
-                        BorderThickness="0"
-                        DisplayMemberPath="Name"
-                        FontSize="14"
-                        IsEditable="True"
-                        ItemsSource="{Binding AvailableCustomers}"
-                        SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}" />
-                </Border>
+        Grid.Row="0"
+        Grid.Column="0"
+        Margin="5,0"
+        VerticalAlignment="Center"
+        FontSize="13"
+        Text="Mijoz" />
+
+                <Grid Grid.Row="0" Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border
+            Height="30"
+            BorderBrush="#CCCCCC"
+            BorderThickness="2"
+            CornerRadius="4">
+                        <ComboBox x:Name="cbxCustomer"
+                Padding="3"
+                BorderThickness="0"
+                DisplayMemberPath="Name"
+                FontSize="14"
+                IsEditable="True"
+                ItemsSource="{Binding AvailableCustomers}"
+                SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}" />
+                    </Border>
+
+                    <Button x:Name="btnLoad"
+            Grid.Column="1"
+            Width="80"
+            Height="30"
+            Margin="5,0,0,0"
+            md:ButtonAssist.CornerRadius="4"
+            Background="#673AB7"
+            BorderThickness="0"
+            Command="{Binding LoadCommand}"
+            Content="Yuklash"
+            Foreground="White"/>
+                </Grid>
 
                 <TextBlock
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    Margin="5,0"
-                    VerticalAlignment="Center"
-                    FontSize="13"
-                    Text="Xisobot davri" />
+        Grid.Row="1"
+        Grid.Column="0"
+        Margin="5,0"
+        VerticalAlignment="Center"
+        FontSize="13"
+        Text="Xisobot davri" />
+
                 <Grid Grid.Row="1" Grid.Column="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -73,51 +92,46 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
+
                     <controls:UserCalendar x:Name="dateBegin"
-                        Grid.Column="0"
-                        Width="110"
-                        Height="30"
-                        SelectedDate="{Binding BeginDate, Mode=TwoWay}" />
+            Grid.Column="0"
+            Width="110"
+            Height="30"
+            SelectedDate="{Binding BeginDate, Mode=TwoWay}" />
+
                     <TextBlock
-                        Grid.Column="1"
-                        Margin="2,0"
-                        VerticalAlignment="Center"
-                        Text="dan" />
-					<controls:UserCalendar x:Name="dateEnd"
-                        Grid.Column="2"
-                        Width="110"
-                        Height="30"
-                        SelectedDate="{Binding EndDate, Mode=TwoWay}" />
+            Grid.Column="1"
+            Margin="2,0"
+            VerticalAlignment="Center"
+            Text="dan" />
+
+                    <controls:UserCalendar x:Name="dateEnd"
+            Grid.Column="2"
+            Width="110"
+            Height="30"
+            SelectedDate="{Binding EndDate, Mode=TwoWay}" />
+
                     <TextBlock
-                        Grid.Column="3"
-                        Margin="2,0,0,0"
-                        VerticalAlignment="Center"
-                        Text="gacha" />
+            Grid.Column="3"
+            Margin="2,0,0,0"
+            VerticalAlignment="Center"
+            Text="gacha" />
+
                     <Button x:Name="btnReload"
-                        Grid.Column="4"
-                        Width="36"
-                        Height="30"
-                        Margin="3,0,0,0"
-                        Padding="0"
-                        HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center"
-                        Background="CadetBlue"
-                        BorderThickness="0"
-                        Command="{Binding FilterCommand}"
-                        Foreground="White"
-                        ToolTip="Filter">
-
-                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Viewbox Width="18" Height="18">
-                                <Path
-                                    Data="M3,5h18v2H3V5z M6,11h12v2H6v-2z M10,17h4v2h-4v-2z"
-                                    Fill="White"
-                                    Stretch="Uniform" />
-                            </Viewbox>
-                        </Grid>
-
+            Grid.Column="4"
+            Width="36"
+            Height="30"
+            Margin="3,0,0,0"
+            Padding="0"
+            Background="CadetBlue"
+            BorderThickness="0"
+            Command="{Binding FilterCommand}"
+            Foreground="White"
+            ToolTip="Filter">
+                        <Viewbox Width="18" Height="18">
+                            <Path Data="M3,5h18v2H3V5z M6,11h12v2H6v-2z M10,17h4v2h-4v-2z" Fill="White" Stretch="Uniform" />
+                        </Viewbox>
                     </Button>
-
                 </Grid>
             </Grid>
 
