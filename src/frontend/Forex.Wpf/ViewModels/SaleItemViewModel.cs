@@ -25,7 +25,12 @@ public partial class SaleItemViewModel : ViewModelBase
 
     partial void OnUnitPriceChanged(decimal? value) => RecalculateTotalAmount();
     partial void OnBundleCountChanged(int? value) => ReCalculateTotalCount();
-    partial void OnProductTypeChanged(ProductTypeViewModel value) => ReCalculateTotalCount();
+    partial void OnProductTypeChanged(ProductTypeViewModel value)
+    {
+        ReCalculateTotalCount();
+        if (value?.UnitPrice is > 0)
+            UnitPrice = value.UnitPrice;
+    }
     partial void OnTotalCountChanged(int? value) => RecalculateTotalAmount();
 
     #endregion Property Changes
