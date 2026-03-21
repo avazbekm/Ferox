@@ -45,7 +45,7 @@ public partial class FinishedStockReportViewModel : ViewModelBase
                 ApplyFilters();
         };
 
-        _ = LoadAsync();
+        //_ = LoadAsync();
     }
 
 

@@ -40,16 +40,7 @@
                 SelectedIndex="0"
                 TabStripPlacement="Top">
 
-                <!--  1. Savdo tarixi  -->
-                <TabItem Header="Savdo tarixi">
-                    <views:SalesHistoryReportView DataContext="{Binding SalesHistoryVM}" />
-                </TabItem>
-
-                <!--  2. Tayyor mahsulotlar qoldig‘i  -->
-                <TabItem Header="Tayyor mahsulotlar qoldig‘i">
-                    <views:FinishedStockReportView DataContext="{Binding FinishedStockVM}" />
-                </TabItem>
-                <!--  3. Mijoz aylanmasi  -->
+                <!--  1. Mijoz aylanmasi  -->
                 <TabItem Header="Mijoz aylanmasi">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="IsVisibleChanged">
@@ -57,6 +48,15 @@
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
                     <views:CustomerTurnoverReportView DataContext="{Binding CustomerTurnoverVM}" />
+                </TabItem>
+
+                <!--  2. Tayyor mahsulotlar qoldig‘i  -->
+                <TabItem Header="Tayyor mahsulotlar qoldig‘i">
+                    <views:FinishedStockReportView DataContext="{Binding FinishedStockVM}" />
+                </TabItem>
+                <!--  3. Savdo tarixi  -->
+                <TabItem Header="Savdo tarixi">
+                    <views:SalesHistoryReportView DataContext="{Binding SalesHistoryVM}" />
                 </TabItem>
                 <!--  4. Debitor va Kreditor  -->
                 <TabItem Header="Debitor va Kreditor">
